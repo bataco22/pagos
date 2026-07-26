@@ -1,7 +1,7 @@
 {
   "name": "Planificador de Pagos",
   "short_name": "Mis Pagos",
-  "description": "Control personal de deudas, apartados y metas de ahorro.",
+  "description": "Control de deudas y metas con porcentajes independientes.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#f3f5f8",
