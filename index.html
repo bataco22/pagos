@@ -34,8 +34,6 @@
     .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
     .business-row{display:grid;grid-template-columns:1.5fr .7fr auto;gap:7px;margin:8px 0}
     .note{font-size:12px;color:var(--muted);line-height:1.4}.install{margin-top:10px;background:#eaf1f8;color:var(--brand)}
-    .tap-row{cursor:pointer;border-radius:12px;padding:10px;margin:0 -10px}.tap-row:active{background:#f1f4f7}.detail-amount{font-size:18px;font-weight:800}.pct{font-weight:800;color:var(--brand)}
-    .detail-grid{display:grid;gap:10px}.detail-line{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}.detail-line:last-child{border-bottom:0}.detail-line span:first-child{color:var(--muted)}
   </style>
 </head>
 <body>
@@ -65,6 +63,10 @@
       <div class="row"><h2>Mis deudas</h2><button onclick="openDebt()">+ Agregar</button></div>
       <div id="debtList"></div>
     </div>
+    <div class="card" style="margin-top:12px">
+      <div class="row"><h2>Negocios para pagar deudas</h2><button onclick="openBusinesses('debt')">Editar</button></div>
+      <div id="debtBusinessBox" class="empty">No hay negocios configurados.</div>
+    </div>
   </section>
 
   <section id="ahorro">
@@ -73,7 +75,7 @@
       <div id="goalBox" class="empty">No hay meta configurada.</div>
     </div>
     <div class="card" style="margin-top:12px">
-      <div class="row"><h2>Negocios</h2><button onclick="openBusinesses()">Editar</button></div>
+      <div class="row"><h2>Negocios para ahorro</h2><button onclick="openBusinesses('saving')">Editar</button></div>
       <div id="businessBox" class="empty">No hay negocios configurados.</div>
     </div>
   </section>
@@ -120,23 +122,20 @@
 </form></dialog>
 
 <dialog id="businessDialog"><form method="dialog" id="businessForm">
-  <h3>Negocios y porcentajes</h3>
-  <p class="note">Los porcentajes se usan para repartir lo que falta por apartar. Deben sumar 100%.</p>
+  <h3 id="businessTitle">Negocios y porcentajes</h3>
+  <p id="businessNote" class="note">Los porcentajes deben sumar 100%.</p>
+  <input type="hidden" id="businessMode" value="saving">
   <div id="businessRows"></div>
   <button type="button" class="secondary" onclick="addBusinessRow()">+ Agregar negocio</button>
   <div class="actions"><button type="button" class="secondary" onclick="businessDialog.close()">Cancelar</button><button>Guardar</button></div>
 </form></dialog>
 
-
-<dialog id="detailDialog"><form method="dialog">
-  <h3 id="detailTitle">Detalle</h3>
-  <div id="detailBody" class="detail-grid"></div>
-  <div class="actions"><button value="default">Cerrar</button></div>
-</form></dialog>
-
 <script>
 const KEY='planificador-pagos-v1';
-let data=JSON.parse(localStorage.getItem(KEY)||'null')||{debts:[],goal:null,businesses:[]};
+let data=JSON.parse(localStorage.getItem(KEY)||'null')||{debts:[],goal:null,debtBusinesses:[],savingBusinesses:[]};
+// Compatibilidad con versiones anteriores: conserva la configuración existente en ambos apartados.
+if(!Array.isArray(data.debtBusinesses)) data.debtBusinesses=Array.isArray(data.businesses)?data.businesses.map(x=>({...x})):[];
+if(!Array.isArray(data.savingBusinesses)) data.savingBusinesses=Array.isArray(data.businesses)?data.businesses.map(x=>({...x})):[];
 const money=n=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:2}).format(Number(n||0));
 const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
 function save(){localStorage.setItem(KEY,JSON.stringify(data));render()}
@@ -155,13 +154,13 @@ function render(){
  else nextText.textContent='Agrega una deuda para comenzar.';
  debtList.innerHTML=data.debts.length?data.debts.sort((a,b)=>a.due.localeCompare(b.due)).map(d=>{
    const [st,cl]=status(d),pct=Math.min(100,Number(d.target)?Number(d.saved)/Number(d.target)*100:0);
-   return `<div class="item"><div class="tap-row" onclick="openDebtDetail('${d.id}')"><div class="row"><div><div class="name">${esc(d.name)}</div><div class="muted">Vence ${new Date(d.due+'T00:00:00').toLocaleDateString('es-MX')} · ${d.freq}</div></div><span class="pill ${cl}">${st}</span></div><div class="row" style="margin-top:8px"><div><span class="muted">Apartado</span><div class="amount">${money(d.saved)} / ${money(d.target)}</div></div><div style="text-align:right"><span class="muted">Avance</span><div class="pct">${pct.toFixed(0)}%</div></div></div><div class="bar"><span style="width:${pct}%"></span></div><div class="row" style="margin-top:8px"><span class="muted">Faltan ${money(remaining(d))}</span><span class="muted">Por periodo ${money(perPeriod(d))}</span></div></div><div class="toolbar" style="margin-top:10px"><button class="secondary" onclick="addSaving('${d.id}')">+ Apartar</button><button class="secondary" onclick="openDebt('${d.id}')">Editar</button><button class="danger" onclick="removeDebt('${d.id}')">Eliminar</button></div></div>`
+   return `<div class="item"><div class="row"><div><div class="name">${esc(d.name)}</div><div class="muted">Vence ${new Date(d.due+'T00:00:00').toLocaleDateString('es-MX')} · ${d.freq}</div></div><span class="pill ${cl}">${st}</span></div><div class="row" style="margin-top:8px"><div><span class="muted">Apartado</span><div class="amount">${money(d.saved)} / ${money(d.target)}</div></div><div style="text-align:right"><span class="muted">Por periodo</span><div class="amount">${money(perPeriod(d))}</div></div></div><div class="bar"><span style="width:${pct}%"></span></div><div class="toolbar" style="margin-top:10px"><button class="secondary" onclick="addSaving('${d.id}')">+ Apartar</button><button class="secondary" onclick="openDebt('${d.id}')">Editar</button><button class="danger" onclick="removeDebt('${d.id}')">Eliminar</button></div></div>`
  }).join(''):'<div class="empty">No hay deudas. Pulsa “Agregar”.</div>';
- renderContrib(missing);renderGoal();renderBusinesses();
+ renderContrib(missing);renderGoal();renderBusinesses();renderDebtBusinesses(missing);
 }
 function renderContrib(total){
- if(!data.businesses.length){contribSummary.innerHTML='<div class="empty">Configura tus negocios en la pestaña Ahorro.</div>';return}
- contribSummary.innerHTML=data.businesses.map(b=>`<div class="item row"><span>${esc(b.name)} <span class="muted">(${b.pct}%)</span></span><strong>${money(total*b.pct/100)}</strong></div>`).join('');
+ if(!data.debtBusinesses.length){contribSummary.innerHTML='<div class="empty">Configura los porcentajes de deuda en la pestaña Deudas.</div>';return}
+ contribSummary.innerHTML=data.debtBusinesses.map(b=>`<div class="item row"><span>${esc(b.name)} <span class="muted">(${b.pct}%)</span></span><strong>${money(total*b.pct/100)}</strong></div>`).join('');
 }
 function renderGoal(){
  if(!data.goal||!data.goal.target){goalBox.innerHTML='<div class="empty">No hay meta configurada.</div>';return}
@@ -169,20 +168,11 @@ function renderGoal(){
  goalBox.innerHTML=`<div class="name">${esc(g.name||'Meta')}</div><div class="row" style="margin-top:8px"><span>${money(g.saved)} de ${money(g.target)}</span><strong>Faltan ${money(left)}</strong></div><div class="bar"><span style="width:${p}%"></span></div>${g.due?`<div class="muted" style="margin-top:8px">Fecha objetivo: ${new Date(g.due+'T00:00:00').toLocaleDateString('es-MX')}</div>`:''}`
 }
 function renderBusinesses(){
- const total=Number(data.goal?.target||0);
- businessBox.innerHTML=data.businesses.length?data.businesses.map((b,i)=>{const amount=total*b.pct/100;return `<div class="item tap-row" onclick="openBusinessDetail(${i})"><div class="row"><span>${esc(b.name)}</span><strong>${b.pct}%</strong></div><div class="row" style="margin-top:6px"><span class="muted">Monto correspondiente</span><span class="detail-amount">${money(amount)}</span></div></div>`}).join(''):'<div class="empty">No hay negocios configurados.</div>'
+ const left=data.goal&&data.goal.target?Math.max(0,Number(data.goal.target)-Number(data.goal.saved||0)):0;
+ businessBox.innerHTML=data.savingBusinesses.length?data.savingBusinesses.map(b=>`<div class="item"><div class="row"><span class="name">${esc(b.name)}</span><strong>${b.pct}%</strong></div><div class="row" style="margin-top:7px"><span class="muted">Monto correspondiente</span><strong>${money(left*b.pct/100)}</strong></div></div>`).join(''):'<div class="empty">No hay negocios configurados.</div>'
 }
-function openBusinessDetail(i){
- const b=data.businesses[i];if(!b)return;const total=Number(data.goal?.target||0),amount=total*b.pct/100;
- detailTitle.textContent=b.name;
- detailBody.innerHTML=`<div class="detail-line"><span>Porcentaje</span><strong>${b.pct}%</strong></div><div class="detail-line"><span>Monto correspondiente</span><strong>${money(amount)}</strong></div><div class="detail-line"><span>Monto total de la meta</span><strong>${money(total)}</strong></div>`;
- detailDialog.showModal();
-}
-function openDebtDetail(id){
- const d=data.debts.find(x=>x.id===id);if(!d)return;const pct=Math.min(100,Number(d.target)?Number(d.saved)/Number(d.target)*100:0);
- detailTitle.textContent=d.name;
- detailBody.innerHTML=`<div class="detail-line"><span>Porcentaje pagado</span><strong>${pct.toFixed(0)}%</strong></div><div class="detail-line"><span>Monto apartado</span><strong>${money(d.saved)}</strong></div><div class="detail-line"><span>Saldo pendiente</span><strong>${money(remaining(d))}</strong></div><div class="detail-line"><span>Monto a pagar</span><strong>${money(d.target)}</strong></div><div class="detail-line"><span>Pago por ${d.freq.toLowerCase()}</span><strong>${money(perPeriod(d))}</strong></div>`;
- detailDialog.showModal();
+function renderDebtBusinesses(total){
+ debtBusinessBox.innerHTML=data.debtBusinesses.length?data.debtBusinesses.map(b=>`<div class="item"><div class="row"><span class="name">${esc(b.name)}</span><strong>${b.pct}%</strong></div><div class="row" style="margin-top:7px"><span class="muted">Monto correspondiente</span><strong>${money(total*b.pct/100)}</strong></div></div>`).join(''):'<div class="empty">No hay negocios configurados.</div>'
 }
 function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function openDebt(id){
@@ -193,12 +183,19 @@ function addSaving(id){const d=data.debts.find(x=>x.id===id);const v=prompt(`¿C
 function removeDebt(id){if(confirm('¿Eliminar esta deuda?')){data.debts=data.debts.filter(d=>d.id!==id);save()}}
 function openGoal(){const g=data.goal||{};goalName.value=g.name||'';goalTarget.value=g.target||'';goalSaved.value=g.saved||'';goalDue.value=g.due||'';goalDialog.showModal()}
 goalForm.addEventListener('submit',e=>{e.preventDefault();data.goal={name:goalName.value.trim(),target:+goalTarget.value,saved:+goalSaved.value,due:goalDue.value};goalDialog.close();save()})
-function openBusinesses(){businessRows.innerHTML='';(data.businesses.length?data.businesses:[{name:'Mi Farmacia',pct:50},{name:'Otro negocio',pct:50}]).forEach(addBusinessRow);businessDialog.showModal()}
-function addBusinessRow(b={name:'',pct:0}){businessRows.insertAdjacentHTML('beforeend',`<div class="business-row"><input class="bname" placeholder="Nombre" value="${esc(b.name)}"><input class="bpct" type="number" min="0" max="100" value="${b.pct}"><button type="button" class="danger" onclick="this.parentElement.remove()">×</button></div>`)}
-businessForm.addEventListener('submit',e=>{e.preventDefault();const names=[...document.querySelectorAll('.bname')],pcts=[...document.querySelectorAll('.bpct')];const arr=names.map((n,i)=>({name:n.value.trim(),pct:+pcts[i].value})).filter(x=>x.name);const sum=arr.reduce((s,x)=>s+x.pct,0);if(Math.abs(sum-100)>.01){alert('Los porcentajes deben sumar 100%. Ahora suman '+sum+'%.');return}data.businesses=arr;businessDialog.close();save()})
+function openBusinesses(mode='saving'){
+ businessMode.value=mode;businessRows.innerHTML='';
+ const isDebt=mode==='debt';
+ businessTitle.textContent=isDebt?'Porcentajes para pagar deudas':'Porcentajes para ahorro';
+ businessNote.textContent=isDebt?'Esta distribución se usará solamente para pagar deudas. Debe sumar 100%.':'Esta distribución se usará solamente para la meta de ahorro. Debe sumar 100%.';
+ const source=isDebt?data.debtBusinesses:data.savingBusinesses;
+ (source.length?source:[{name:'Mi Farmacia',pct:50},{name:'Otro negocio',pct:50}]).forEach(addBusinessRow);businessDialog.showModal()
+}
+function addBusinessRow(b={name:'',pct:0}){businessRows.insertAdjacentHTML('beforeend',`<div class="business-row"><input class="bname" placeholder="Nombre" value="${esc(b.name)}"><input class="bpct" type="number" min="0" max="100" step="0.01" value="${b.pct}"><button type="button" class="danger" onclick="this.parentElement.remove()">×</button></div>`)}
+businessForm.addEventListener('submit',e=>{e.preventDefault();const names=[...document.querySelectorAll('.bname')],pcts=[...document.querySelectorAll('.bpct')];const arr=names.map((n,i)=>({name:n.value.trim(),pct:+pcts[i].value})).filter(x=>x.name);const sum=arr.reduce((s,x)=>s+x.pct,0);if(Math.abs(sum-100)>.01){alert('Los porcentajes deben sumar 100%. Ahora suman '+sum+'%.');return}if(businessMode.value==='debt')data.debtBusinesses=arr;else data.savingBusinesses=arr;businessDialog.close();save()})
 function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='respaldo-planificador-pagos.json';a.click();URL.revokeObjectURL(a.href)}
 importFile.addEventListener('change',async e=>{try{const obj=JSON.parse(await e.target.files[0].text());if(!obj.debts)throw Error();data=obj;save();alert('Respaldo importado.')}catch{alert('El archivo no es un respaldo válido.')}})
-function resetData(){if(confirm('Esto borrará todos los datos guardados en este dispositivo.')){data={debts:[],goal:null,businesses:[]};save()}}
+function resetData(){if(confirm('Esto borrará todos los datos guardados en este dispositivo.')){data={debts:[],goal:null,debtBusinesses:[],savingBusinesses:[]};save()}}
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('section,nav button').forEach(x=>x.classList.remove('active'));document.getElementById(b.dataset.tab).classList.add('active');b.classList.add('active')})
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 let deferredPrompt;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;installBtn.hidden=false});installBtn.onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=null;installBtn.hidden=true}}
