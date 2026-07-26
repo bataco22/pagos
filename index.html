@@ -34,6 +34,8 @@
     .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
     .business-row{display:grid;grid-template-columns:1.5fr .7fr auto;gap:7px;margin:8px 0}
     .note{font-size:12px;color:var(--muted);line-height:1.4}.install{margin-top:10px;background:#eaf1f8;color:var(--brand)}
+    .tap-row{cursor:pointer;border-radius:12px;padding:10px;margin:0 -10px}.tap-row:active{background:#f1f4f7}.detail-amount{font-size:18px;font-weight:800}.pct{font-weight:800;color:var(--brand)}
+    .detail-grid{display:grid;gap:10px}.detail-line{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}.detail-line:last-child{border-bottom:0}.detail-line span:first-child{color:var(--muted)}
   </style>
 </head>
 <body>
@@ -100,7 +102,7 @@
   <h3 id="debtTitle">Nueva deuda</h3><input type="hidden" id="debtId">
   <div class="field"><label>Deuda o tarjeta</label><input id="debtName" required placeholder="Ej. Liverpool VISA"></div>
   <div class="field"><label>Saldo actual</label><input id="debtBalance" type="number" min="0" step="0.01" required></div>
-  <div class="field"><label>Pago objetivo para esta fecha</label><input id="debtTarget" type="number" min="0" step="0.01" required></div>
+  <div class="field"><label>Monto a pagar</label><small class="note">Cantidad que deseas pagar en la fecha límite.</small><input id="debtTarget" type="number" min="0" step="0.01" required></div>
   <div class="field"><label>Ya apartado</label><input id="debtSaved" type="number" min="0" step="0.01" value="0"></div>
   <div class="field"><label>Fecha límite</label><input id="debtDue" type="date" required></div>
   <div class="field"><label>Frecuencia para apartar</label><select id="debtFreq"><option>Diario</option><option selected>Semanal</option><option>Quincenal</option><option>Mensual</option></select></div>
@@ -125,6 +127,13 @@
   <div class="actions"><button type="button" class="secondary" onclick="businessDialog.close()">Cancelar</button><button>Guardar</button></div>
 </form></dialog>
 
+
+<dialog id="detailDialog"><form method="dialog">
+  <h3 id="detailTitle">Detalle</h3>
+  <div id="detailBody" class="detail-grid"></div>
+  <div class="actions"><button value="default">Cerrar</button></div>
+</form></dialog>
+
 <script>
 const KEY='planificador-pagos-v1';
 let data=JSON.parse(localStorage.getItem(KEY)||'null')||{debts:[],goal:null,businesses:[]};
@@ -146,7 +155,7 @@ function render(){
  else nextText.textContent='Agrega una deuda para comenzar.';
  debtList.innerHTML=data.debts.length?data.debts.sort((a,b)=>a.due.localeCompare(b.due)).map(d=>{
    const [st,cl]=status(d),pct=Math.min(100,Number(d.target)?Number(d.saved)/Number(d.target)*100:0);
-   return `<div class="item"><div class="row"><div><div class="name">${esc(d.name)}</div><div class="muted">Vence ${new Date(d.due+'T00:00:00').toLocaleDateString('es-MX')} · ${d.freq}</div></div><span class="pill ${cl}">${st}</span></div><div class="row" style="margin-top:8px"><div><span class="muted">Apartado</span><div class="amount">${money(d.saved)} / ${money(d.target)}</div></div><div style="text-align:right"><span class="muted">Por periodo</span><div class="amount">${money(perPeriod(d))}</div></div></div><div class="bar"><span style="width:${pct}%"></span></div><div class="toolbar" style="margin-top:10px"><button class="secondary" onclick="addSaving('${d.id}')">+ Apartar</button><button class="secondary" onclick="openDebt('${d.id}')">Editar</button><button class="danger" onclick="removeDebt('${d.id}')">Eliminar</button></div></div>`
+   return `<div class="item"><div class="tap-row" onclick="openDebtDetail('${d.id}')"><div class="row"><div><div class="name">${esc(d.name)}</div><div class="muted">Vence ${new Date(d.due+'T00:00:00').toLocaleDateString('es-MX')} · ${d.freq}</div></div><span class="pill ${cl}">${st}</span></div><div class="row" style="margin-top:8px"><div><span class="muted">Apartado</span><div class="amount">${money(d.saved)} / ${money(d.target)}</div></div><div style="text-align:right"><span class="muted">Avance</span><div class="pct">${pct.toFixed(0)}%</div></div></div><div class="bar"><span style="width:${pct}%"></span></div><div class="row" style="margin-top:8px"><span class="muted">Faltan ${money(remaining(d))}</span><span class="muted">Por periodo ${money(perPeriod(d))}</span></div></div><div class="toolbar" style="margin-top:10px"><button class="secondary" onclick="addSaving('${d.id}')">+ Apartar</button><button class="secondary" onclick="openDebt('${d.id}')">Editar</button><button class="danger" onclick="removeDebt('${d.id}')">Eliminar</button></div></div>`
  }).join(''):'<div class="empty">No hay deudas. Pulsa “Agregar”.</div>';
  renderContrib(missing);renderGoal();renderBusinesses();
 }
@@ -160,7 +169,20 @@ function renderGoal(){
  goalBox.innerHTML=`<div class="name">${esc(g.name||'Meta')}</div><div class="row" style="margin-top:8px"><span>${money(g.saved)} de ${money(g.target)}</span><strong>Faltan ${money(left)}</strong></div><div class="bar"><span style="width:${p}%"></span></div>${g.due?`<div class="muted" style="margin-top:8px">Fecha objetivo: ${new Date(g.due+'T00:00:00').toLocaleDateString('es-MX')}</div>`:''}`
 }
 function renderBusinesses(){
- businessBox.innerHTML=data.businesses.length?data.businesses.map(b=>`<div class="item row"><span>${esc(b.name)}</span><strong>${b.pct}%</strong></div>`).join(''):'<div class="empty">No hay negocios configurados.</div>'
+ const total=Number(data.goal?.target||0);
+ businessBox.innerHTML=data.businesses.length?data.businesses.map((b,i)=>{const amount=total*b.pct/100;return `<div class="item tap-row" onclick="openBusinessDetail(${i})"><div class="row"><span>${esc(b.name)}</span><strong>${b.pct}%</strong></div><div class="row" style="margin-top:6px"><span class="muted">Monto correspondiente</span><span class="detail-amount">${money(amount)}</span></div></div>`}).join(''):'<div class="empty">No hay negocios configurados.</div>'
+}
+function openBusinessDetail(i){
+ const b=data.businesses[i];if(!b)return;const total=Number(data.goal?.target||0),amount=total*b.pct/100;
+ detailTitle.textContent=b.name;
+ detailBody.innerHTML=`<div class="detail-line"><span>Porcentaje</span><strong>${b.pct}%</strong></div><div class="detail-line"><span>Monto correspondiente</span><strong>${money(amount)}</strong></div><div class="detail-line"><span>Monto total de la meta</span><strong>${money(total)}</strong></div>`;
+ detailDialog.showModal();
+}
+function openDebtDetail(id){
+ const d=data.debts.find(x=>x.id===id);if(!d)return;const pct=Math.min(100,Number(d.target)?Number(d.saved)/Number(d.target)*100:0);
+ detailTitle.textContent=d.name;
+ detailBody.innerHTML=`<div class="detail-line"><span>Porcentaje pagado</span><strong>${pct.toFixed(0)}%</strong></div><div class="detail-line"><span>Monto apartado</span><strong>${money(d.saved)}</strong></div><div class="detail-line"><span>Saldo pendiente</span><strong>${money(remaining(d))}</strong></div><div class="detail-line"><span>Monto a pagar</span><strong>${money(d.target)}</strong></div><div class="detail-line"><span>Pago por ${d.freq.toLowerCase()}</span><strong>${money(perPeriod(d))}</strong></div>`;
+ detailDialog.showModal();
 }
 function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function openDebt(id){
