@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#17324d" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Mis Pagos" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <title>Planificador de Pagos</title>
+  <style>
+    :root{--bg:#f3f5f8;--card:#fff;--ink:#152536;--muted:#6b7785;--brand:#17324d;--ok:#1f8a59;--warn:#d38b12;--bad:#c74b50;--line:#e4e8ed}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+    header{padding:calc(18px + env(safe-area-inset-top)) 18px 18px;background:linear-gradient(135deg,#17324d,#2b5876);color:#fff}
+    header h1{margin:0;font-size:24px} header p{margin:5px 0 0;opacity:.85}
+    main{max-width:760px;margin:auto;padding:14px 14px calc(90px + env(safe-area-inset-bottom))}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.card{background:var(--card);border-radius:16px;padding:14px;box-shadow:0 3px 14px rgba(20,35,50,.07)}
+    .metric small{color:var(--muted)}.metric strong{display:block;font-size:22px;margin-top:6px}.wide{grid-column:1/-1}
+    .next{border-left:5px solid var(--warn)} .next h2{margin:0 0 6px;font-size:19px}.next .days{font-size:28px;font-weight:800}
+    h2{font-size:19px;margin:0 0 12px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+    button,.btn{border:0;border-radius:11px;padding:10px 13px;font-weight:700;background:var(--brand);color:#fff;cursor:pointer}
+    button.secondary{background:#e8edf3;color:var(--brand)}button.danger{background:#f9e5e7;color:#a92e36}
+    .item{border-top:1px solid var(--line);padding:12px 0}.item:first-of-type{border-top:0}.row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .name{font-weight:800}.muted{color:var(--muted);font-size:13px}.amount{font-weight:800}.bar{height:8px;background:#e8edf1;border-radius:99px;overflow:hidden;margin-top:8px}.bar span{display:block;height:100%;background:var(--ok)}
+    .pill{display:inline-block;padding:4px 8px;border-radius:99px;font-size:12px;font-weight:700}.pending{background:#fff0d2;color:#966100}.late{background:#f9dfe2;color:#a72f38}.paid{background:#dff3e9;color:#176b46}
+    nav{position:fixed;left:0;right:0;bottom:0;z-index:9;display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+    nav button{background:#fff;color:var(--muted);border-radius:0;padding:12px 4px;font-size:12px}nav button.active{color:var(--brand)}
+    section{display:none}section.active{display:block}.empty{text-align:center;padding:24px;color:var(--muted)}
+    dialog{border:0;border-radius:18px;width:min(92vw,520px);padding:0;box-shadow:0 20px 60px rgba(0,0,0,.25)}dialog::backdrop{background:rgba(10,20,30,.5)}
+    form{padding:18px}form h3{margin-top:0}.field{margin:11px 0}.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+    input,select,textarea{width:100%;padding:11px;border:1px solid #ccd4dc;border-radius:10px;font:inherit}textarea{min-height:70px}
+    .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px}
+    .business-row{display:grid;grid-template-columns:1.5fr .7fr auto;gap:7px;margin:8px 0}
+    .note{font-size:12px;color:var(--muted);line-height:1.4}.install{margin-top:10px;background:#eaf1f8;color:var(--brand)}
+  </style>
+</head>
+<body>
+<header>
+  <h1>Planificador de Pagos</h1>
+  <p>Deudas, apartados y metas en un solo lugar</p>
+  <button id="installBtn" class="install" hidden>Instalar app</button>
+</header>
+
+<main>
+  <section id="inicio" class="active">
+    <div class="grid">
+      <div class="card metric"><small>Deuda total</small><strong id="mDebt">$0</strong></div>
+      <div class="card metric"><small>Total apartado</small><strong id="mSaved">$0</strong></div>
+      <div class="card metric"><small>Falta por juntar</small><strong id="mMissing">$0</strong></div>
+      <div class="card metric"><small>Pagos activos</small><strong id="mActive">0</strong></div>
+      <div class="card wide next" id="nextCard"><h2>Próximo pago</h2><div id="nextText" class="muted">Agrega una deuda para comenzar.</div></div>
+      <div class="card wide">
+        <h2>Resumen de aportaciones</h2>
+        <div id="contribSummary" class="empty">Aún no hay deudas.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="deudas">
+    <div class="card">
+      <div class="row"><h2>Mis deudas</h2><button onclick="openDebt()">+ Agregar</button></div>
+      <div id="debtList"></div>
+    </div>
+  </section>
+
+  <section id="ahorro">
+    <div class="card">
+      <div class="row"><h2>Meta de ahorro</h2><button onclick="openGoal()">Configurar</button></div>
+      <div id="goalBox" class="empty">No hay meta configurada.</div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="row"><h2>Negocios</h2><button onclick="openBusinesses()">Editar</button></div>
+      <div id="businessBox" class="empty">No hay negocios configurados.</div>
+    </div>
+  </section>
+
+  <section id="config">
+    <div class="card">
+      <h2>Respaldo</h2>
+      <p class="note">Los datos se guardan únicamente en este dispositivo. Exporta una copia de vez en cuando.</p>
+      <div class="toolbar">
+        <button onclick="exportData()">Exportar respaldo</button>
+        <label class="btn secondary">Importar<input id="importFile" type="file" accept="application/json" hidden></label>
+        <button class="danger" onclick="resetData()">Borrar todo</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button data-tab="inicio" class="active">Inicio</button>
+  <button data-tab="deudas">Deudas</button>
+  <button data-tab="ahorro">Ahorro</button>
+  <button data-tab="config">Ajustes</button>
+</nav>
+
+<dialog id="debtDialog"><form method="dialog" id="debtForm">
+  <h3 id="debtTitle">Nueva deuda</h3><input type="hidden" id="debtId">
+  <div class="field"><label>Deuda o tarjeta</label><input id="debtName" required placeholder="Ej. Liverpool VISA"></div>
+  <div class="field"><label>Saldo actual</label><input id="debtBalance" type="number" min="0" step="0.01" required></div>
+  <div class="field"><label>Pago objetivo para esta fecha</label><input id="debtTarget" type="number" min="0" step="0.01" required></div>
+  <div class="field"><label>Ya apartado</label><input id="debtSaved" type="number" min="0" step="0.01" value="0"></div>
+  <div class="field"><label>Fecha límite</label><input id="debtDue" type="date" required></div>
+  <div class="field"><label>Frecuencia para apartar</label><select id="debtFreq"><option>Diario</option><option selected>Semanal</option><option>Quincenal</option><option>Mensual</option></select></div>
+  <div class="field"><label>Notas</label><textarea id="debtNotes"></textarea></div>
+  <div class="actions"><button type="button" class="secondary" onclick="debtDialog.close()">Cancelar</button><button value="default">Guardar</button></div>
+</form></dialog>
+
+<dialog id="goalDialog"><form method="dialog" id="goalForm">
+  <h3>Meta de ahorro</h3>
+  <div class="field"><label>Nombre de la meta</label><input id="goalName" placeholder="Ej. Fondo para casa"></div>
+  <div class="field"><label>Monto de la meta</label><input id="goalTarget" type="number" min="0" step="0.01"></div>
+  <div class="field"><label>Acumulado</label><input id="goalSaved" type="number" min="0" step="0.01"></div>
+  <div class="field"><label>Fecha objetivo</label><input id="goalDue" type="date"></div>
+  <div class="actions"><button type="button" class="secondary" onclick="goalDialog.close()">Cancelar</button><button>Guardar</button></div>
+</form></dialog>
+
+<dialog id="businessDialog"><form method="dialog" id="businessForm">
+  <h3>Negocios y porcentajes</h3>
+  <p class="note">Los porcentajes se usan para repartir lo que falta por apartar. Deben sumar 100%.</p>
+  <div id="businessRows"></div>
+  <button type="button" class="secondary" onclick="addBusinessRow()">+ Agregar negocio</button>
+  <div class="actions"><button type="button" class="secondary" onclick="businessDialog.close()">Cancelar</button><button>Guardar</button></div>
+</form></dialog>
+
+<script>
+const KEY='planificador-pagos-v1';
+let data=JSON.parse(localStorage.getItem(KEY)||'null')||{debts:[],goal:null,businesses:[]};
+const money=n=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:2}).format(Number(n||0));
+const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
+function save(){localStorage.setItem(KEY,JSON.stringify(data));render()}
+function daysUntil(date){const a=new Date();a.setHours(0,0,0,0);const b=new Date(date+'T00:00:00');return Math.ceil((b-a)/86400000)}
+function periods(freq,days){if(days<=0)return 1;return Math.max(1,Math.ceil(days/({Diario:1,Semanal:7,Quincenal:15,Mensual:30}[freq]||7)))}
+function remaining(d){return Math.max(0,Number(d.target)-Number(d.saved))}
+function perPeriod(d){return remaining(d)/periods(d.freq,daysUntil(d.due))}
+function status(d){if(remaining(d)<=0)return ['Pagado','paid'];if(daysUntil(d.due)<0)return ['Vencido','late'];return ['Pendiente','pending']}
+function render(){
+ const totalDebt=data.debts.reduce((s,d)=>s+Number(d.balance||0),0);
+ const saved=data.debts.reduce((s,d)=>s+Number(d.saved||0),0);
+ const missing=data.debts.reduce((s,d)=>s+remaining(d),0);
+ mDebt.textContent=money(totalDebt);mSaved.textContent=money(saved);mMissing.textContent=money(missing);mActive.textContent=data.debts.filter(d=>remaining(d)>0).length;
+ const active=[...data.debts].filter(d=>remaining(d)>0).sort((a,b)=>a.due.localeCompare(b.due));
+ if(active.length){const d=active[0],days=daysUntil(d.due);nextText.innerHTML=`<div class="row"><div><div class="name">${esc(d.name)}</div><div class="muted">${new Date(d.due+'T00:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'})}</div></div><div class="days">${days<0?Math.abs(days)+' días vencido':days===0?'Hoy':days+' días'}</div></div><div style="margin-top:10px">Apartar ${money(perPeriod(d))} ${d.freq.toLowerCase()} · faltan ${money(remaining(d))}</div>`}
+ else nextText.textContent='Agrega una deuda para comenzar.';
+ debtList.innerHTML=data.debts.length?data.debts.sort((a,b)=>a.due.localeCompare(b.due)).map(d=>{
+   const [st,cl]=status(d),pct=Math.min(100,Number(d.target)?Number(d.saved)/Number(d.target)*100:0);
+   return `<div class="item"><div class="row"><div><div class="name">${esc(d.name)}</div><div class="muted">Vence ${new Date(d.due+'T00:00:00').toLocaleDateString('es-MX')} · ${d.freq}</div></div><span class="pill ${cl}">${st}</span></div><div class="row" style="margin-top:8px"><div><span class="muted">Apartado</span><div class="amount">${money(d.saved)} / ${money(d.target)}</div></div><div style="text-align:right"><span class="muted">Por periodo</span><div class="amount">${money(perPeriod(d))}</div></div></div><div class="bar"><span style="width:${pct}%"></span></div><div class="toolbar" style="margin-top:10px"><button class="secondary" onclick="addSaving('${d.id}')">+ Apartar</button><button class="secondary" onclick="openDebt('${d.id}')">Editar</button><button class="danger" onclick="removeDebt('${d.id}')">Eliminar</button></div></div>`
+ }).join(''):'<div class="empty">No hay deudas. Pulsa “Agregar”.</div>';
+ renderContrib(missing);renderGoal();renderBusinesses();
+}
+function renderContrib(total){
+ if(!data.businesses.length){contribSummary.innerHTML='<div class="empty">Configura tus negocios en la pestaña Ahorro.</div>';return}
+ contribSummary.innerHTML=data.businesses.map(b=>`<div class="item row"><span>${esc(b.name)} <span class="muted">(${b.pct}%)</span></span><strong>${money(total*b.pct/100)}</strong></div>`).join('');
+}
+function renderGoal(){
+ if(!data.goal||!data.goal.target){goalBox.innerHTML='<div class="empty">No hay meta configurada.</div>';return}
+ const g=data.goal,p=Math.min(100,g.saved/g.target*100),left=Math.max(0,g.target-g.saved);
+ goalBox.innerHTML=`<div class="name">${esc(g.name||'Meta')}</div><div class="row" style="margin-top:8px"><span>${money(g.saved)} de ${money(g.target)}</span><strong>Faltan ${money(left)}</strong></div><div class="bar"><span style="width:${p}%"></span></div>${g.due?`<div class="muted" style="margin-top:8px">Fecha objetivo: ${new Date(g.due+'T00:00:00').toLocaleDateString('es-MX')}</div>`:''}`
+}
+function renderBusinesses(){
+ businessBox.innerHTML=data.businesses.length?data.businesses.map(b=>`<div class="item row"><span>${esc(b.name)}</span><strong>${b.pct}%</strong></div>`).join(''):'<div class="empty">No hay negocios configurados.</div>'
+}
+function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function openDebt(id){
+ const d=data.debts.find(x=>x.id===id);debtTitle.textContent=d?'Editar deuda':'Nueva deuda';debtId.value=d?.id||'';debtName.value=d?.name||'';debtBalance.value=d?.balance||'';debtTarget.value=d?.target||'';debtSaved.value=d?.saved||0;debtDue.value=d?.due||'';debtFreq.value=d?.freq||'Semanal';debtNotes.value=d?.notes||'';debtDialog.showModal()
+}
+debtForm.addEventListener('submit',e=>{e.preventDefault();const obj={id:debtId.value||uid(),name:debtName.value.trim(),balance:+debtBalance.value,target:+debtTarget.value,saved:+debtSaved.value,due:debtDue.value,freq:debtFreq.value,notes:debtNotes.value.trim()};const i=data.debts.findIndex(d=>d.id===obj.id);i>=0?data.debts[i]=obj:data.debts.push(obj);debtDialog.close();save()})
+function addSaving(id){const d=data.debts.find(x=>x.id===id);const v=prompt(`¿Cuánto vas a apartar para ${d.name}?`);if(v!==null&&!isNaN(v)&&Number(v)>=0){d.saved=Math.min(Number(d.target),Number(d.saved)+Number(v));save()}}
+function removeDebt(id){if(confirm('¿Eliminar esta deuda?')){data.debts=data.debts.filter(d=>d.id!==id);save()}}
+function openGoal(){const g=data.goal||{};goalName.value=g.name||'';goalTarget.value=g.target||'';goalSaved.value=g.saved||'';goalDue.value=g.due||'';goalDialog.showModal()}
+goalForm.addEventListener('submit',e=>{e.preventDefault();data.goal={name:goalName.value.trim(),target:+goalTarget.value,saved:+goalSaved.value,due:goalDue.value};goalDialog.close();save()})
+function openBusinesses(){businessRows.innerHTML='';(data.businesses.length?data.businesses:[{name:'Mi Farmacia',pct:50},{name:'Otro negocio',pct:50}]).forEach(addBusinessRow);businessDialog.showModal()}
+function addBusinessRow(b={name:'',pct:0}){businessRows.insertAdjacentHTML('beforeend',`<div class="business-row"><input class="bname" placeholder="Nombre" value="${esc(b.name)}"><input class="bpct" type="number" min="0" max="100" value="${b.pct}"><button type="button" class="danger" onclick="this.parentElement.remove()">×</button></div>`)}
+businessForm.addEventListener('submit',e=>{e.preventDefault();const names=[...document.querySelectorAll('.bname')],pcts=[...document.querySelectorAll('.bpct')];const arr=names.map((n,i)=>({name:n.value.trim(),pct:+pcts[i].value})).filter(x=>x.name);const sum=arr.reduce((s,x)=>s+x.pct,0);if(Math.abs(sum-100)>.01){alert('Los porcentajes deben sumar 100%. Ahora suman '+sum+'%.');return}data.businesses=arr;businessDialog.close();save()})
+function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='respaldo-planificador-pagos.json';a.click();URL.revokeObjectURL(a.href)}
+importFile.addEventListener('change',async e=>{try{const obj=JSON.parse(await e.target.files[0].text());if(!obj.debts)throw Error();data=obj;save();alert('Respaldo importado.')}catch{alert('El archivo no es un respaldo válido.')}})
+function resetData(){if(confirm('Esto borrará todos los datos guardados en este dispositivo.')){data={debts:[],goal:null,businesses:[]};save()}}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('section,nav button').forEach(x=>x.classList.remove('active'));document.getElementById(b.dataset.tab).classList.add('active');b.classList.add('active')})
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+let deferredPrompt;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;installBtn.hidden=false});installBtn.onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=null;installBtn.hidden=true}}
+render();
+</script>
+</body>
+</html>

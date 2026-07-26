@@ -1,0 +1,21 @@
+{
+  "name": "Planificador de Pagos",
+  "short_name": "Mis Pagos",
+  "description": "Control personal de deudas, apartados y metas de ahorro.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f3f5f8",
+  "theme_color": "#17324d",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

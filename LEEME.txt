@@ -1,0 +1,16 @@
+PLANIFICADOR DE PAGOS — INSTALACIÓN EN IPHONE
+
+1. Descomprime este ZIP.
+2. Sube los archivos a un servicio HTTPS. La opción gratuita más sencilla es GitHub Pages:
+   - Crea una cuenta en github.com.
+   - Crea un repositorio nuevo, por ejemplo: planificador-pagos.
+   - Sube TODOS los archivos de esta carpeta a la raíz del repositorio.
+   - En Settings > Pages, elige “Deploy from a branch”.
+   - Selecciona branch “main” y carpeta “/(root)”, luego Save.
+3. Espera uno o dos minutos y abre en Safari la dirección que GitHub te muestre.
+4. En Safari pulsa Compartir > Agregar a pantalla de inicio > Agregar.
+
+IMPORTANTE
+- Los datos quedan guardados en ese iPhone mediante almacenamiento local.
+- Usa Ajustes > Exportar respaldo periódicamente.
+- No borres los datos de Safari sin tener un respaldo.
