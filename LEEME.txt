@@ -6,6 +6,7 @@ CAMBIO PRINCIPAL
 - Los porcentajes de una deuda o meta ya no modifican las demás.
 - Ahora puedes crear varias metas de ahorro.
 - El monto equivalente se actualiza al escribir cada porcentaje.
+- En las deudas, cada negocio ahora muestra únicamente su parte del pago por periodo (diario, semanal, quincenal o mensual), no su parte de toda la deuda pendiente.
 
 ACTUALIZAR EN GITHUB PAGES
 1. Descomprime este ZIP.

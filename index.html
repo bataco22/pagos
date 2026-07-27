@@ -40,6 +40,7 @@
     .business-row .preview{grid-column:1/-1;background:#f3f6f9;border-radius:9px;padding:7px 9px;font-size:12px;color:var(--muted)}
     .note{font-size:12px;color:var(--muted);line-height:1.45}.install{margin-top:10px;background:#eaf1f8;color:var(--brand)}
     .sum{font-weight:850;padding:10px;border-radius:10px;background:#eef3f7;margin-top:8px}.sum.bad{background:#fbe8ea;color:#a92e36}
+    .progress-box{background:#f7f9fb;border:1px solid var(--line);border-radius:13px;padding:10px;margin-top:10px}.progress-title{font-size:12px;color:var(--muted);font-weight:800;margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em}.progress-row{display:grid;grid-template-columns:1fr auto;gap:8px;padding:7px 0;border-top:1px solid var(--line)}.progress-row:first-of-type{border-top:0}.progress-row small{display:block;color:var(--muted);margin-top:2px}.history{margin-top:9px}.history-entry{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px 0;border-top:1px solid var(--line);font-size:13px}.history-entry button{padding:6px 9px;border-radius:9px}.complete-text{color:var(--ok);font-weight:800}.missing-text{color:var(--warn);font-weight:800}
   </style>
 </head>
 <body>
@@ -126,6 +127,17 @@
   <div class="actions"><button type="button" class="secondary" onclick="allocationDialog.close()">Cancelar</button><button>Guardar distribución</button></div>
 </form></dialog>
 
+<dialog id="savingDialog"><form method="dialog" id="savingForm">
+  <h3 id="savingTitle">Registrar aportación</h3>
+  <input type="hidden" id="savingType"><input type="hidden" id="savingItemId">
+  <div class="field"><label>Negocio que aporta</label><select id="savingBusiness" required></select></div>
+  <div class="field"><label>Cantidad</label><input id="savingAmount" type="number" min="0.01" step="0.01" required></div>
+  <div class="field"><label>Fecha</label><input id="savingDate" type="date" required></div>
+  <div class="field"><label>Nota opcional</label><textarea id="savingNote" placeholder="Ej. Venta de la semana"></textarea></div>
+  <div id="savingHint" class="note"></div>
+  <div class="actions"><button type="button" class="secondary" onclick="savingDialog.close()">Cancelar</button><button>Guardar aportación</button></div>
+</form></dialog>
+
 <script>
 const KEY='planificador-pagos-v1';
 const money=n=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:2}).format(Number(n||0));
@@ -136,8 +148,8 @@ function migrate(){
   data.debts=Array.isArray(data.debts)?data.debts:[];
   if(!Array.isArray(data.goals)) data.goals=data.goal&&data.goal.target?[{...data.goal,id:data.goal.id||uid()}]:[];
   const old=Array.isArray(data.businesses)?data.businesses:[];
-  data.debts.forEach(d=>{if(!Array.isArray(d.allocations))d.allocations=old.map(x=>({...x}))});
-  data.goals.forEach(g=>{if(!g.id)g.id=uid();if(!Array.isArray(g.allocations))g.allocations=old.map(x=>({...x}))});
+  data.debts.forEach(d=>{if(!Array.isArray(d.allocations))d.allocations=old.map(x=>({...x}));if(!Array.isArray(d.contributions))d.contributions=[]});
+  data.goals.forEach(g=>{if(!g.id)g.id=uid();if(!Array.isArray(g.allocations))g.allocations=old.map(x=>({...x}));if(!Array.isArray(g.contributions))g.contributions=[]});
   delete data.goal; delete data.businesses;
 }
 migrate();
@@ -149,18 +161,27 @@ function periods(freq,days){if(days<=0)return 1;return Math.max(1,Math.ceil(days
 function remaining(x){return Math.max(0,Number(x.target)-Number(x.saved))}
 function perPeriod(d){return remaining(d)/periods(d.freq,daysUntil(d.due))}
 function status(d){if(remaining(d)<=0)return ['Pagado','paid'];if(daysUntil(d.due)<0)return ['Vencido','late'];return ['Pendiente','pending']}
+function allocationBase(x){return x&&x.freq?perPeriod(x):remaining(x)}
 function allocHtml(x){
  const arr=x.allocations||[]; if(!arr.length)return '<div class="allocation"><div class="muted">Sin distribución. Pulsa “Porcentajes”.</div></div>';
- const left=remaining(x);
- return `<div class="allocation"><div class="allocation-title">Distribución independiente</div>${arr.map(a=>`<div class="alloc-row"><span>${esc(a.name)} · ${Number(a.pct)}%</span><strong>${money(left*Number(a.pct)/100)}</strong></div>`).join('')}</div>`;
+ const base=allocationBase(x),title=x.freq?'Distribución por periodo':'Distribución independiente';
+ return `<div class="allocation"><div class="allocation-title">${title}</div>${arr.map(a=>`<div class="alloc-row"><span>${esc(a.name)} · ${Number(a.pct)}%</span><strong>${money(base*Number(a.pct)/100)}</strong></div>`).join('')}</div>`;
+}
+function contributionTotal(x,name){return (x.contributions||[]).filter(c=>c.business===name).reduce((s,c)=>s+Number(c.amount||0),0)}
+function contributionHtml(type,x){
+ const arr=x.allocations||[];if(!arr.length)return '';
+ const rows=arr.map(a=>{const expected=Number(x.target||0)*Number(a.pct||0)/100,actual=contributionTotal(x,a.name),missing=Math.max(0,expected-actual),done=missing<=0.009;return `<div class="progress-row"><div><strong>${esc(a.name)}</strong><small>${money(actual)} de ${money(expected)}</small></div><div class="${done?'complete-text':'missing-text'}">${done?'Completo':'Faltan '+money(missing)}</div></div>`}).join('');
+ const registered=(x.contributions||[]).reduce((s,c)=>s+Number(c.amount||0),0),unassigned=Math.max(0,Number(x.saved||0)-registered),unassignedRow=unassigned>0.009?`<div class="progress-row"><div><strong>Sin negocio asignado</strong><small>Dinero apartado antes de activar este control</small></div><div class="missing-text">${money(unassigned)}</div></div>`:'';
+ const history=[...(x.contributions||[])].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,8).map(c=>`<div class="history-entry"><div><strong>${esc(c.business)}</strong> · ${money(c.amount)}<small>${c.date?new Date(c.date+'T00:00:00').toLocaleDateString('es-MX'):''}${c.note?' · '+esc(c.note):''}</small></div><button class="danger" onclick="deleteContribution('${type}','${x.id}','${c.id}')">Eliminar</button></div>`).join('');
+ return `<div class="progress-box"><div class="progress-title">Avance por negocio</div>${rows}${unassignedRow}${history?`<div class="history"><div class="progress-title">Últimas aportaciones</div>${history}</div>`:''}</div>`;
 }
 function render(){
  const totalDebt=data.debts.reduce((s,d)=>s+Number(d.balance||0),0), saved=data.debts.reduce((s,d)=>s+Number(d.saved||0),0), missing=data.debts.reduce((s,d)=>s+remaining(d),0);
  mDebt.textContent=money(totalDebt);mSaved.textContent=money(saved);mMissing.textContent=money(missing);mActive.textContent=data.debts.filter(d=>remaining(d)>0).length;
  const active=[...data.debts].filter(d=>remaining(d)>0).sort((a,b)=>(a.due||'').localeCompare(b.due||''));
  if(active.length){const d=active[0],days=daysUntil(d.due);nextText.innerHTML=`<div class="row"><div><div class="name">${esc(d.name)}</div><div class="muted">${new Date(d.due+'T00:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'})}</div></div><div class="days">${days<0?Math.abs(days)+' días vencido':days===0?'Hoy':days+' días'}</div></div><div style="margin-top:10px">Apartar ${money(perPeriod(d))} ${d.freq.toLowerCase()} · faltan ${money(remaining(d))}</div>`} else nextText.textContent='Agrega una deuda para comenzar.';
- debtList.innerHTML=data.debts.length?[...data.debts].sort((a,b)=>(a.due||'').localeCompare(b.due||'')).map(d=>{const [st,cl]=status(d),pct=Math.min(100,Number(d.target)?Number(d.saved)/Number(d.target)*100:0);return `<div class="item"><div class="row"><div><div class="name">${esc(d.name)}</div><div class="muted">Vence ${new Date(d.due+'T00:00:00').toLocaleDateString('es-MX')} · ${d.freq}</div></div><span class="pill ${cl}">${st}</span></div><div class="row" style="margin-top:8px"><div><span class="muted">Apartado</span><div class="amount">${money(d.saved)} / ${money(d.target)}</div></div><div style="text-align:right"><span class="muted">Por periodo</span><div class="amount">${money(perPeriod(d))}</div></div></div><div class="bar"><span style="width:${pct}%"></span></div>${allocHtml(d)}<div class="toolbar"><button class="secondary" onclick="addSaving('debt','${d.id}')">+ Apartar</button><button onclick="openAllocation('debt','${d.id}')">Porcentajes</button><button class="secondary" onclick="openDebt('${d.id}')">Editar</button><button class="danger" onclick="removeItem('debt','${d.id}')">Eliminar</button></div></div>`}).join(''):'<div class="empty">No hay deudas. Pulsa “Agregar”.</div>';
- goalList.innerHTML=data.goals.length?data.goals.map(g=>{const pct=Math.min(100,Number(g.target)?Number(g.saved)/Number(g.target)*100:0);return `<div class="item"><div class="row"><div><div class="name">${esc(g.name)}</div><div class="muted">${g.due?'Fecha objetivo '+new Date(g.due+'T00:00:00').toLocaleDateString('es-MX'):'Sin fecha objetivo'}</div></div><span class="pill ${remaining(g)<=0?'paid':'pending'}">${remaining(g)<=0?'Cumplida':'En proceso'}</span></div><div class="row" style="margin-top:8px"><div><span class="muted">Ahorrado</span><div class="amount">${money(g.saved)} / ${money(g.target)}</div></div><div style="text-align:right"><span class="muted">Falta</span><div class="amount">${money(remaining(g))}</div></div></div><div class="bar"><span style="width:${pct}%"></span></div>${allocHtml(g)}<div class="toolbar"><button class="secondary" onclick="addSaving('goal','${g.id}')">+ Ahorrar</button><button onclick="openAllocation('goal','${g.id}')">Porcentajes</button><button class="secondary" onclick="openGoal('${g.id}')">Editar</button><button class="danger" onclick="removeItem('goal','${g.id}')">Eliminar</button></div></div>`}).join(''):'<div class="empty">No hay metas. Pulsa “Agregar”.</div>';
+ debtList.innerHTML=data.debts.length?[...data.debts].sort((a,b)=>(a.due||'').localeCompare(b.due||'')).map(d=>{const [st,cl]=status(d),pct=Math.min(100,Number(d.target)?Number(d.saved)/Number(d.target)*100:0);return `<div class="item"><div class="row"><div><div class="name">${esc(d.name)}</div><div class="muted">Vence ${new Date(d.due+'T00:00:00').toLocaleDateString('es-MX')} · ${d.freq}</div></div><span class="pill ${cl}">${st}</span></div><div class="row" style="margin-top:8px"><div><span class="muted">Apartado</span><div class="amount">${money(d.saved)} / ${money(d.target)}</div></div><div style="text-align:right"><span class="muted">Por periodo</span><div class="amount">${money(perPeriod(d))}</div></div></div><div class="bar"><span style="width:${pct}%"></span></div>${allocHtml(d)}${contributionHtml('debt',d)}<div class="toolbar"><button class="secondary" onclick="addSaving('debt','${d.id}')">+ Apartar</button><button onclick="openAllocation('debt','${d.id}')">Porcentajes</button><button class="secondary" onclick="openDebt('${d.id}')">Editar</button><button class="danger" onclick="removeItem('debt','${d.id}')">Eliminar</button></div></div>`}).join(''):'<div class="empty">No hay deudas. Pulsa “Agregar”.</div>';
+ goalList.innerHTML=data.goals.length?data.goals.map(g=>{const pct=Math.min(100,Number(g.target)?Number(g.saved)/Number(g.target)*100:0);return `<div class="item"><div class="row"><div><div class="name">${esc(g.name)}</div><div class="muted">${g.due?'Fecha objetivo '+new Date(g.due+'T00:00:00').toLocaleDateString('es-MX'):'Sin fecha objetivo'}</div></div><span class="pill ${remaining(g)<=0?'paid':'pending'}">${remaining(g)<=0?'Cumplida':'En proceso'}</span></div><div class="row" style="margin-top:8px"><div><span class="muted">Ahorrado</span><div class="amount">${money(g.saved)} / ${money(g.target)}</div></div><div style="text-align:right"><span class="muted">Falta</span><div class="amount">${money(remaining(g))}</div></div></div><div class="bar"><span style="width:${pct}%"></span></div>${allocHtml(g)}${contributionHtml('goal',g)}<div class="toolbar"><button class="secondary" onclick="addSaving('goal','${g.id}')">+ Ahorrar</button><button onclick="openAllocation('goal','${g.id}')">Porcentajes</button><button class="secondary" onclick="openGoal('${g.id}')">Editar</button><button class="danger" onclick="removeItem('goal','${g.id}')">Eliminar</button></div></div>`}).join(''):'<div class="empty">No hay metas. Pulsa “Agregar”.</div>';
  renderSummary();
 }
 function renderSummary(){
@@ -170,13 +191,22 @@ function renderSummary(){
 function openDebt(id){
  const d=data.debts.find(x=>x.id===id);debtTitle.textContent=d?'Editar deuda':'Nueva deuda';debtId.value=d?.id||'';debtName.value=d?.name||'';debtBalance.value=d?.balance||'';debtTarget.value=d?.target||'';debtSaved.value=d?.saved||0;debtDue.value=d?.due||'';debtFreq.value=d?.freq||'Semanal';debtNotes.value=d?.notes||'';debtDialog.showModal()
 }
-debtForm.addEventListener('submit',e=>{e.preventDefault();const old=data.debts.find(d=>d.id===debtId.value);const obj={id:debtId.value||uid(),name:debtName.value.trim(),balance:+debtBalance.value,target:+debtTarget.value,saved:+debtSaved.value,due:debtDue.value,freq:debtFreq.value,notes:debtNotes.value.trim(),allocations:old?.allocations||[]};const i=data.debts.findIndex(d=>d.id===obj.id);i>=0?data.debts[i]=obj:data.debts.push(obj);debtDialog.close();save()});
+debtForm.addEventListener('submit',e=>{e.preventDefault();const old=data.debts.find(d=>d.id===debtId.value);const obj={id:debtId.value||uid(),name:debtName.value.trim(),balance:+debtBalance.value,target:+debtTarget.value,saved:+debtSaved.value,due:debtDue.value,freq:debtFreq.value,notes:debtNotes.value.trim(),allocations:old?.allocations||[],contributions:old?.contributions||[]};const i=data.debts.findIndex(d=>d.id===obj.id);i>=0?data.debts[i]=obj:data.debts.push(obj);debtDialog.close();save()});
 function openGoal(id){
  const g=data.goals.find(x=>x.id===id);goalTitle.textContent=g?'Editar meta':'Nueva meta';goalId.value=g?.id||'';goalName.value=g?.name||'';goalTarget.value=g?.target||'';goalSaved.value=g?.saved||0;goalDue.value=g?.due||'';goalDialog.showModal()
 }
-goalForm.addEventListener('submit',e=>{e.preventDefault();const old=data.goals.find(g=>g.id===goalId.value);const obj={id:goalId.value||uid(),name:goalName.value.trim(),target:+goalTarget.value,saved:+goalSaved.value,due:goalDue.value,allocations:old?.allocations||[]};const i=data.goals.findIndex(g=>g.id===obj.id);i>=0?data.goals[i]=obj:data.goals.push(obj);goalDialog.close();save()});
+goalForm.addEventListener('submit',e=>{e.preventDefault();const old=data.goals.find(g=>g.id===goalId.value);const obj={id:goalId.value||uid(),name:goalName.value.trim(),target:+goalTarget.value,saved:+goalSaved.value,due:goalDue.value,allocations:old?.allocations||[],contributions:old?.contributions||[]};const i=data.goals.findIndex(g=>g.id===obj.id);i>=0?data.goals[i]=obj:data.goals.push(obj);goalDialog.close();save()});
 function getItem(type,id){return type==='debt'?data.debts.find(x=>x.id===id):data.goals.find(x=>x.id===id)}
-function addSaving(type,id){const x=getItem(type,id),label=type==='debt'?'apartar':'ahorrar';const v=prompt(`¿Cuánto vas a ${label} para ${x.name}?`);if(v!==null&&!isNaN(v)&&Number(v)>=0){x.saved=Math.min(Number(x.target),Number(x.saved)+Number(v));save()}}
+function addSaving(type,id){
+ const x=getItem(type,id);if(!(x.allocations||[]).length){alert('Primero configura los porcentajes y negocios.');openAllocation(type,id);return}
+ savingType.value=type;savingItemId.value=id;savingTitle.textContent=type==='debt'?`Apartar para ${x.name}`:`Ahorrar para ${x.name}`;
+ savingBusiness.innerHTML=(x.allocations||[]).map(a=>`<option value="${esc(a.name)}">${esc(a.name)}</option>`).join('');savingAmount.value='';savingDate.value=new Date().toISOString().slice(0,10);savingNote.value='';updateSavingHint();savingDialog.showModal()
+}
+function updateSavingHint(){const x=getItem(savingType.value,savingItemId.value);if(!x)return;const a=(x.allocations||[]).find(a=>a.name===savingBusiness.value);if(!a)return;const expected=Number(x.target||0)*Number(a.pct||0)/100,actual=contributionTotal(x,a.name);savingHint.textContent=`${a.name} lleva ${money(actual)} de ${money(expected)}. Falta ${money(Math.max(0,expected-actual))}.`}
+savingBusiness.addEventListener('change',updateSavingHint);
+savingForm.addEventListener('submit',e=>{e.preventDefault();const x=getItem(savingType.value,savingItemId.value),amount=Number(savingAmount.value);if(!x||!amount||amount<=0)return;const remainingTotal=Math.max(0,Number(x.target)-Number(x.saved));if(amount>remainingTotal&&!confirm(`Solo faltan ${money(remainingTotal)} en total. ¿Deseas registrar ${money(amount)} de todos modos?`))return;x.contributions=x.contributions||[];x.contributions.push({id:uid(),business:savingBusiness.value,amount,date:savingDate.value,note:savingNote.value.trim()});x.saved=Math.min(Number(x.target),Number(x.saved)+amount);savingDialog.close();save()});
+function deleteContribution(type,itemId,contributionId){const x=getItem(type,itemId),c=(x.contributions||[]).find(c=>c.id===contributionId);if(!x||!c)return;if(confirm(`¿Eliminar la aportación de ${money(c.amount)} de ${c.business}?`)){x.contributions=x.contributions.filter(y=>y.id!==contributionId);x.saved=Math.max(0,Number(x.saved)-Number(c.amount));save()}}
+
 function removeItem(type,id){if(confirm(type==='debt'?'¿Eliminar esta deuda?':'¿Eliminar esta meta?')){if(type==='debt')data.debts=data.debts.filter(x=>x.id!==id);else data.goals=data.goals.filter(x=>x.id!==id);save()}}
 function openAllocation(type,id){
  const x=getItem(type,id);allocationType.value=type;allocationId.value=id;allocationTitle.textContent=`Porcentajes de ${x.name}`;businessRows.innerHTML='';
@@ -188,8 +218,8 @@ function addBusinessRow(b={name:'',pct:0}){
  updateAllocationPreview()
 }
 function updateAllocationPreview(){
- const x=getItem(allocationType.value,allocationId.value),left=x?remaining(x):0, rows=[...businessRows.querySelectorAll('.business-row')];let sum=0;
- rows.forEach(r=>{const p=Number(r.querySelector('.bpct').value)||0;sum+=p;r.querySelector('.preview').textContent=`${p}% equivale a ${money(left*p/100)}`});
+ const x=getItem(allocationType.value,allocationId.value),base=x?allocationBase(x):0, rows=[...businessRows.querySelectorAll('.business-row')];let sum=0;
+ rows.forEach(r=>{const p=Number(r.querySelector('.bpct').value)||0;sum+=p;r.querySelector('.preview').textContent=`${p}% equivale a ${money(base*p/100)}${x?.freq?' por periodo':''}`});
  allocationSum.textContent=`Total: ${sum}%`;allocationSum.classList.toggle('bad',Math.abs(sum-100)>.01)
 }
 allocationForm.addEventListener('submit',e=>{e.preventDefault();const x=getItem(allocationType.value,allocationId.value);const rows=[...businessRows.querySelectorAll('.business-row')];const arr=rows.map(r=>({name:r.querySelector('.bname').value.trim(),pct:Number(r.querySelector('.bpct').value)||0})).filter(a=>a.name);const sum=arr.reduce((s,a)=>s+a.pct,0);if(!arr.length){alert('Agrega al menos un negocio.');return}if(Math.abs(sum-100)>.01){alert('Los porcentajes deben sumar 100%. Ahora suman '+sum+'%.');return}x.allocations=arr;allocationDialog.close();save()});
