@@ -1,21 +1,14 @@
-PLANIFICADOR DE PAGOS — PORCENTAJES INDEPENDIENTES
+PLANIFICADOR DE PAGOS - CENTRO DE EFECTIVO
 
-CAMBIO PRINCIPAL
-- Cada deuda tiene su propia distribución por negocio.
-- Cada meta de ahorro tiene su propia distribución por negocio.
-- Los porcentajes de una deuda o meta ya no modifican las demás.
-- Ahora puedes crear varias metas de ahorro.
-- El monto equivalente se actualiza al escribir cada porcentaje.
-- En las deudas, cada negocio ahora muestra únicamente su parte del pago por periodo (diario, semanal, quincenal o mensual), no su parte de toda la deuda pendiente.
+Novedades:
+- Nueva pestaña Negocios.
+- Billetera independiente para cada negocio.
+- Registro de ingresos por fecha y nota.
+- Cálculo de efectivo disponible real.
+- Sugerencias automáticas de cuánto apartar hoy para deudas y metas.
+- Opción de registrar el ingreso solamente o registrar y distribuirlo.
+- Al distribuir, se actualizan automáticamente la deuda/meta, el historial y el disponible del negocio.
+- Inicio con total de aportaciones del día y desglose por negocio.
 
-ACTUALIZAR EN GITHUB PAGES
-1. Descomprime este ZIP.
-2. En tu repositorio de GitHub, reemplaza los archivos anteriores por estos.
-3. Conserva los nombres exactamente como aparecen.
-4. Espera uno o dos minutos.
-5. Cierra y vuelve a abrir la app.
-6. Si todavía ves la versión anterior, abre la página en Safari, recárgala y luego vuelve a abrir el icono.
-
-DATOS
-La aplicación intenta conservar y migrar automáticamente las deudas, la meta y los negocios de la versión anterior.
-Antes de actualizar, es recomendable entrar a Ajustes y exportar un respaldo.
+La app conserva los datos anteriores porque usa el mismo almacenamiento local.
+Antes de reemplazar una versión publicada, exporta un respaldo desde Ajustes.
