@@ -52,6 +52,11 @@
     .wallet-card{border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px;background:#fff}.wallet-balance{font-size:26px;font-weight:900;margin:6px 0}.wallet-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}.wallet-mini{background:#f5f7fa;border-radius:11px;padding:9px}.wallet-mini small{display:block;color:var(--muted);font-size:11px}.wallet-mini strong{display:block;margin-top:4px;font-size:14px}.suggestion{border-top:1px solid var(--line);padding:9px 0;display:grid;grid-template-columns:1fr auto;gap:8px}.suggestion:first-child{border-top:0}.hero-today{background:linear-gradient(135deg,#17324d,#2b5876);color:white}.hero-today .muted{color:rgba(255,255,255,.75)}.hero-amount{font-size:32px;font-weight:900;margin:7px 0}.income-row{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px 0;border-top:1px solid var(--line);font-size:13px}.movement-actions{display:flex;gap:6px;align-items:center}.movement-actions button{padding:6px 8px;font-size:11px}.expense-amount{color:var(--bad)}.income-row:first-child{border-top:0}.check-row{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}.check-row:first-child{border-top:0}.check-row input{width:auto}.check-row input[type=number]{width:105px}.warning-box{background:#fff4da;border:1px solid #f0d18a;border-radius:12px;padding:10px;color:#815d0b;font-size:13px;margin-top:10px}
 
     .assistant-card{background:linear-gradient(135deg,#ffffff,#f5f8fb);border:1px solid #dce5ed;margin-bottom:12px}.assistant-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.assistant-date{font-size:13px;color:var(--muted);font-weight:700}.assistant-progress{margin:12px 0}.assistant-task{border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:9px;background:#fff}.assistant-task.urgent{border-left:5px solid var(--bad)}.assistant-task.medium{border-left:5px solid var(--warn)}.assistant-task.normal{border-left:5px solid var(--ok)}.task-grid{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}.task-meta{font-size:12px;color:var(--muted);margin-top:4px}.task-amount{font-size:20px;font-weight:900;text-align:right}.done-banner{background:#e2f4ea;color:#176b46;border-radius:13px;padding:14px;font-weight:850;text-align:center}.insight{padding:10px 0;border-top:1px solid var(--line);font-size:14px}.insight:first-child{border-top:0}.priority-badge{display:inline-block;font-size:11px;font-weight:850;border-radius:99px;padding:4px 8px;margin-bottom:4px}.priority-high{background:#f9dfe2;color:#a72f38}.priority-mid{background:#fff0d2;color:#966100}.priority-low{background:#dff3e9;color:#176b46}
+
+    .business-overview{margin:14px 0 4px;padding:14px;border-radius:16px;background:linear-gradient(135deg,#17324d,#2b5876);color:#fff}
+    .business-overview h3{margin:0 0 10px;font-size:15px}.overview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.overview-mini{background:rgba(255,255,255,.12);border-radius:12px;padding:10px}.overview-mini small{display:block;color:rgba(255,255,255,.76);font-size:11px}.overview-mini strong{display:block;margin-top:5px;font-size:17px}
+    .priority-group{border:1px solid var(--line);border-radius:15px;margin-top:10px;background:#fff;overflow:hidden}.priority-group-head{padding:13px;cursor:pointer;user-select:none}.priority-group-head:active{background:#f7f9fb}.priority-group-top{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center}.priority-group-total{font-size:19px;font-weight:900;text-align:right}.priority-group-chevron{font-size:20px;font-weight:900;color:var(--brand);transition:transform .18s}.priority-group.open .priority-group-chevron{transform:rotate(90deg)}.priority-group-detail{display:none;border-top:1px solid var(--line);padding:10px 13px;background:#fcfdfe}.priority-group.open .priority-group-detail{display:block}.priority-business{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}.priority-business:first-child{border-top:0}.priority-business .task-amount{font-size:17px}.priority-business button{margin-top:6px;padding:8px 11px}
+    @media(max-width:430px){.overview-grid{grid-template-columns:1fr}.overview-mini{display:grid;grid-template-columns:1fr auto;align-items:center}.overview-mini strong{margin-top:0}.priority-group-top{grid-template-columns:1fr auto auto}}
   </style>
 </head>
 <body>
@@ -99,6 +104,14 @@
   <section id="negocios">
     <div class="card">
       <div class="row"><div><h2>Dinero por negocio</h2><div class="muted">Registra ingresos y separa aportaciones sin mezclar el efectivo disponible.</div></div><button onclick="openBusiness()">+ Negocio</button></div>
+      <div id="businessOverview" class="business-overview">
+        <h3>Resumen general</h3>
+        <div class="overview-grid">
+          <div class="overview-mini"><small>Total ingresado</small><strong id="businessTotalIncome">$0</strong></div>
+          <div class="overview-mini"><small>Total gastado</small><strong id="businessTotalExpenses">$0</strong></div>
+          <div class="overview-mini"><small>Disponible total</small><strong id="businessTotalAvailable">$0</strong></div>
+        </div>
+      </div>
       <div id="businessList"></div>
     </div>
   </section>
@@ -202,6 +215,7 @@ const money=n=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',ma
 const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
 let data=JSON.parse(localStorage.getItem(KEY)||'null')||{debts:[],goals:[]};
 let openDebtId=null, openGoalId=null;
+const openAssistantGroups=new Set();
 
 function todayISO(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
 function migrate(){
@@ -275,7 +289,14 @@ function businessSuggestions(name){
  return out;
 }
 function allBusinessNames(){const set=new Set(data.businessWallets.map(b=>b.name));[...data.debts,...data.goals].forEach(x=>(x.allocations||[]).forEach(a=>set.add(a.name)));return [...set].filter(Boolean).sort()}
+function renderBusinessOverview(){
+ const income=data.businessWallets.reduce((sum,b)=>sum+(b.incomes||[]).reduce((s,x)=>s+Number(x.amount||0),0),0);
+ const expenses=data.businessWallets.reduce((sum,b)=>sum+(b.expenses||[]).reduce((s,x)=>s+Number(x.amount||0),0),0);
+ const available=data.businessWallets.reduce((sum,b)=>sum+walletBalance(b),0);
+ businessTotalIncome.textContent=money(income);businessTotalExpenses.textContent=money(expenses);businessTotalAvailable.textContent=money(available);
+}
 function renderBusinesses(){
+ renderBusinessOverview();
  const names=allBusinessNames();
  businessList.innerHTML=names.length?names.map(name=>{let b=walletByName(name);const bal=b?walletBalance(b):0,sugs=businessSuggestions(name),today=sugs.reduce((s,x)=>s+x.amount,0),apart=b?(b.transfers||[]).reduce((s,x)=>s+Number(x.amount||0),0):0,inc=b?(b.incomes||[]).reduce((s,x)=>s+Number(x.amount||0),0):0,expenses=b?(b.expenses||[]).reduce((s,x)=>s+Number(x.amount||0),0):0;const movements=b?[...(b.incomes||[]),...(b.expenses||[]),...(b.transfers||[])].sort((a,c)=>(c.date||'').localeCompare(a.date||'')||(c.createdAt||'').localeCompare(a.createdAt||'')).slice(0,10):[];return `<div class="wallet-card"><div class="row"><div><div class="name">${esc(name)}</div><div class="muted">Disponible real</div><div class="wallet-balance">${money(bal)}</div></div><span class="pill ${bal>=today?'paid':'late'}">${bal>=today?'Puede cubrir hoy':'Fondos insuficientes'}</span></div><div class="wallet-grid"><div class="wallet-mini"><small>Ingresos</small><strong>${money(inc)}</strong></div><div class="wallet-mini"><small>Gastos</small><strong>${money(expenses)}</strong></div><div class="wallet-mini"><small>Apartado</small><strong>${money(apart)}</strong></div><div class="wallet-mini"><small>Corresponde hoy</small><strong>${money(today)}</strong></div></div>${sugs.length?`<div class="allocation"><div class="allocation-title">Sugerido para hoy</div>${sugs.map(x=>`<div class="suggestion"><span>${esc(x.name)} · ${x.label}</span><strong>${money(x.amount)}</strong></div>`).join('')}</div>`:'<div class="muted" style="margin-top:10px">Sin aportaciones pendientes para hoy.</div>'}<div class="toolbar">${b?`<button onclick="openIncome('${b.id}')">+ Registrar ingreso</button><button class="secondary" onclick="openExpense('${b.id}')">− Registrar gasto</button><button class="secondary" onclick="openBusiness('${b.id}')">Editar</button><button class="danger" onclick="removeBusiness('${b.id}')">Eliminar</button>`:`<button onclick="openBusiness('', '${esc(name)}')">Activar billetera</button>`}</div>${movements.length?`<div class="history"><div class="progress-title">Movimientos recientes</div>${movements.map(x=>{const isTransfer=x.kind==='transfer',isExpense=x.kind==='expense';const label=isTransfer?'Apartado para '+esc(x.itemName):isExpense?esc(x.category||'Gasto')+(x.note?' · '+esc(x.note):''):esc(x.note||'Ingreso');const sign=isTransfer||isExpense?'-':'+';const actions=isExpense?`<div class="movement-actions"><strong class="expense-amount">${sign}${money(x.amount)}</strong><button class="secondary" onclick="openExpense('${b.id}','${x.id}')">Editar</button><button class="danger" onclick="deleteExpense('${b.id}','${x.id}')">Eliminar</button></div>`:`<strong>${sign}${money(x.amount)}</strong>`;return `<div class="income-row"><span>${label}<small class="muted">${new Date((x.date||todayISO())+'T00:00:00').toLocaleDateString('es-MX')}</small></span>${actions}</div>`}).join('')}</div>`:''}</div>`}).join(''):'<div class="empty">Agrega un negocio para comenzar a controlar su efectivo.</div>';
 }
@@ -306,6 +327,8 @@ function dailyTasks(){
  return tasks.sort((a,b)=>(a.days-b.days)||(b.amount-a.amount));
 }
 function openSuggestedSaving(type,id,business,amount){addSaving(type,id);savingBusiness.value=business;updateSavingHint(false);savingAmount.value=Number(amount).toFixed(2)}
+function openSuggestedSavingEncoded(type,id,businessEncoded,amount){openSuggestedSaving(type,id,decodeURIComponent(businessEncoded),amount)}
+function toggleAssistantGroup(key){openAssistantGroups.has(key)?openAssistantGroups.delete(key):openAssistantGroups.add(key);renderDailyAssistant()}
 function renderDailyAssistant(){
  const date=new Date(todayISO()+'T00:00:00');assistantDate.textContent=date.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
  const tasks=dailyTasks();
@@ -314,7 +337,16 @@ function renderDailyAssistant(){
  assistantPercent.textContent=pct+'%';assistantBar.style.width=pct+'%';
  if(!allExpected.length){assistantTasks.innerHTML='<div class="done-banner">No tienes aportaciones programadas para hoy.</div>'}
  else if(!tasks.length){assistantTasks.innerHTML='<div class="done-banner">✓ Día completado. Todas las aportaciones de hoy están cubiertas.</div>'}
- else assistantTasks.innerHTML=tasks.map((t,i)=>{const urgency=t.days<=3?'urgent':t.days<=7?'medium':'normal',badge=t.days<=3?['Prioridad alta','priority-high']:t.days<=7?['Prioridad media','priority-mid']:['Programada','priority-low'];return `<div class="assistant-task ${urgency}"><div class="task-grid"><div><span class="priority-badge ${badge[1]}">${badge[0]}</span><div class="name">${esc(t.name)}</div><div class="task-meta">${t.label} · Desde ${esc(t.business)}${Number.isFinite(t.days)?` · ${t.days<0?'Vencida':t.days===0?'Vence hoy':'Vence en '+t.days+' días'}`:''}</div></div><div><div class="task-amount">${money(t.amount)}</div><button style="margin-top:7px" onclick="openSuggestedSaving('${t.type}','${t.id}','${esc(t.business)}',${t.amount})">Registrar</button></div></div></div>`}).join('');
+ else {
+   const groups=[];
+   tasks.forEach(t=>{const key=t.type+'|'+t.id;let g=groups.find(x=>x.key===key);if(!g){g={key,type:t.type,id:t.id,name:t.name,label:t.label,days:t.days,tasks:[]};groups.push(g)}g.tasks.push(t)});
+   assistantTasks.innerHTML=groups.map(g=>{
+     const urgency=g.days<=3?'urgent':g.days<=7?'medium':'normal',badge=g.days<=3?['Prioridad alta','priority-high']:g.days<=7?['Prioridad media','priority-mid']:['Programada','priority-low'];
+     const total=g.tasks.reduce((sum,t)=>sum+Number(t.amount||0),0),open=openAssistantGroups.has(g.key);
+     const dueText=Number.isFinite(g.days)?(g.days<0?'Vencida':g.days===0?'Vence hoy':'Vence en '+g.days+' días'):'';
+     return `<div class="priority-group ${open?'open':''} ${urgency}"><div class="priority-group-head" onclick="toggleAssistantGroup('${g.key}')"><div class="priority-group-top"><div><span class="priority-badge ${badge[1]}">${badge[0]}</span><div class="name">${esc(g.name)}</div><div class="task-meta">${g.label}${dueText?' · '+dueText:''} · ${g.tasks.length} ${g.tasks.length===1?'negocio':'negocios'}</div></div><div class="priority-group-total">${money(total)}</div><div class="priority-group-chevron">›</div></div></div><div class="priority-group-detail">${g.tasks.map(t=>`<div class="priority-business"><div><strong>${esc(t.business)}</strong><div class="task-meta">Aportación pendiente de hoy</div></div><div style="text-align:right"><div class="task-amount">${money(t.amount)}</div><button onclick="openSuggestedSavingEncoded('${t.type}','${t.id}','${encodeURIComponent(t.business)}',${t.amount})">Registrar</button></div></div>`).join('')}</div></div>`
+   }).join('');
+ }
  renderFinancialInsights();
 }
 function renderFinancialInsights(){
