@@ -1,19 +1,20 @@
 {
-  "name": "Planificador de Pagos",
-  "short_name": "Mis Pagos",
-  "description": "Control de deudas y metas con porcentajes independientes.",
+  "name": "Centro Quant v6.2",
+  "short_name": "Quant v6.2",
+  "description": "Centro Quant v6.2: análisis, simulador, diario y motor de score configurable.",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#f3f5f8",
-  "theme_color": "#17324d",
+  "background_color": "#07101d",
+  "theme_color": "#0b1220",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "./icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icon-512.png",
+      "src": "./icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

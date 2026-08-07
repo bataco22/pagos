@@ -2,430 +2,392 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#17324d" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b1220" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="Mis Pagos" />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
-  <title>Planificador de Pagos</title>
-  <style>
-    :root{--bg:#f3f5f8;--card:#fff;--ink:#152536;--muted:#6b7785;--brand:#17324d;--ok:#1f8a59;--warn:#d38b12;--bad:#c74b50;--line:#e4e8ed}
-    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
-    header{padding:calc(18px + env(safe-area-inset-top)) 18px 18px;background:linear-gradient(135deg,#17324d,#2b5876);color:#fff}
-    header h1{margin:0;font-size:24px} header p{margin:5px 0 0;opacity:.85}
-    main{max-width:760px;margin:auto;padding:14px 14px calc(95px + env(safe-area-inset-bottom))}
-    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.card{background:var(--card);border-radius:18px;padding:14px;box-shadow:0 3px 14px rgba(20,35,50,.07)}
-    .metric small{color:var(--muted)}.metric strong{display:block;font-size:22px;margin-top:6px}.wide{grid-column:1/-1}
-    .next{border-left:5px solid var(--warn)} .next h2{margin:0 0 6px;font-size:19px}.next .days{font-size:24px;font-weight:800}
-    h2{font-size:21px;margin:0 0 12px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-    button,.btn{border:0;border-radius:12px;padding:11px 14px;font-weight:750;background:var(--brand);color:#fff;cursor:pointer}
-    button.secondary{background:#e8edf3;color:var(--brand)}button.danger{background:#f9e5e7;color:#a92e36}
-    .item{border-top:1px solid var(--line);padding:14px 0}.item:first-of-type{border-top:0}.row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-    .name{font-weight:850;font-size:18px}.muted{color:var(--muted);font-size:13px}.amount{font-weight:850}.bar{height:9px;background:#e8edf1;border-radius:99px;overflow:hidden;margin-top:9px}.bar span{display:block;height:100%;background:var(--ok)}
-    .pill{display:inline-block;padding:5px 10px;border-radius:99px;font-size:12px;font-weight:800}.pending{background:#fff0d2;color:#966100}.late{background:#f9dfe2;color:#a72f38}.paid{background:#dff3e9;color:#176b46}
-    .allocation{background:#f7f9fb;border:1px solid var(--line);border-radius:13px;padding:10px;margin-top:10px}
-    .allocation-title{font-size:12px;color:var(--muted);font-weight:800;margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em}
-    .alloc-row{display:grid;grid-template-columns:1fr auto;gap:10px;padding:5px 0;font-size:14px}.alloc-row strong{text-align:right}
-    nav{position:fixed;left:0;right:0;bottom:0;z-index:9;display:grid;grid-template-columns:repeat(5,1fr);background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-    nav button{background:#fff;color:var(--muted);border-radius:0;padding:13px 4px;font-size:12px}nav button.active{color:var(--brand)}
-    section{display:none}section.active{display:block}.empty{text-align:center;padding:24px;color:var(--muted)}
-    dialog{border:0;border-radius:18px;width:min(94vw,540px);padding:0;box-shadow:0 20px 60px rgba(0,0,0,.25);max-height:88vh}
-    dialog::backdrop{background:rgba(10,20,30,.52)}form{padding:18px;max-height:88vh;overflow:auto}
-    form h3{margin-top:0}.field{margin:11px 0}.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
-    input,select,textarea{width:100%;padding:11px;border:1px solid #ccd4dc;border-radius:10px;font:inherit}textarea{min-height:70px}
-    .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:15px;position:sticky;bottom:-18px;background:#fff;padding:12px 0 2px}
-    .business-row{display:grid;grid-template-columns:1.5fr .65fr auto;gap:7px;margin:8px 0;align-items:center}
-    .business-row .preview{grid-column:1/-1;background:#f3f6f9;border-radius:9px;padding:7px 9px;font-size:12px;color:var(--muted)}
-    .note{font-size:12px;color:var(--muted);line-height:1.45}.install{margin-top:10px;background:#eaf1f8;color:var(--brand)}
-    .sum{font-weight:850;padding:10px;border-radius:10px;background:#eef3f7;margin-top:8px}.sum.bad{background:#fbe8ea;color:#a92e36}
-    .progress-box{background:#f7f9fb;border:1px solid var(--line);border-radius:13px;padding:10px;margin-top:10px}.progress-title{font-size:12px;color:var(--muted);font-weight:800;margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em}.progress-row{display:grid;grid-template-columns:1fr auto;gap:8px;padding:7px 0;border-top:1px solid var(--line)}.progress-row:first-of-type{border-top:0}.progress-row small{display:block;color:var(--muted);margin-top:2px}.history{margin-top:9px}.history-entry{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px 0;border-top:1px solid var(--line);font-size:13px}.history-entry button{padding:6px 9px;border-radius:9px}.complete-text{color:var(--ok);font-weight:800}.missing-text{color:var(--warn);font-weight:800}
-    .compact-item{border:1px solid var(--line);border-radius:16px;margin-top:12px;background:#fff;overflow:hidden;box-shadow:0 2px 8px rgba(20,35,50,.04)}
-    .compact-head{padding:14px;cursor:pointer;user-select:none}.compact-head:active{background:#f7f9fb}
-    .compact-top{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center}.compact-chevron{font-size:20px;font-weight:900;color:var(--brand);width:24px;text-align:center;transition:transform .18s}.compact-item.open .compact-chevron{transform:rotate(90deg)}
-    .compact-summary{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-top:10px}.compact-summary .amount{font-size:16px}.compact-detail{display:none;border-top:1px solid var(--line);padding:14px;background:#fcfdfe}.compact-item.open .compact-detail{display:block}
-    .compact-detail .toolbar{margin-top:14px}.compact-detail .toolbar button{flex:1 1 120px}
-    .schedule-box{margin-top:10px;padding:11px;border-radius:13px;background:#eef4f8;border:1px solid #d9e3eb}
-    .schedule-main{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}.schedule-main strong{font-size:18px}.schedule-meta{margin-top:5px;color:var(--muted);font-size:12px;line-height:1.4}.schedule-late{color:var(--warn);font-weight:800}.schedule-ahead{color:var(--ok);font-weight:800}.schedule-overdue{color:var(--bad);font-weight:850}.history-entry small{display:block;color:var(--muted);margin-top:3px}.history-actions{display:flex;gap:5px;align-items:center}.history-actions button{padding:6px 8px}.history-status{font-weight:800}.history-ok{color:var(--ok)}.history-short{color:var(--warn)}.history-over{color:var(--brand)}
-
-    .wallet-card{border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:12px;background:#fff}.wallet-balance{font-size:26px;font-weight:900;margin:6px 0}.wallet-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}.wallet-mini{background:#f5f7fa;border-radius:11px;padding:9px}.wallet-mini small{display:block;color:var(--muted);font-size:11px}.wallet-mini strong{display:block;margin-top:4px;font-size:14px}.suggestion{border-top:1px solid var(--line);padding:9px 0;display:grid;grid-template-columns:1fr auto;gap:8px}.suggestion:first-child{border-top:0}.hero-today{background:linear-gradient(135deg,#17324d,#2b5876);color:white}.hero-today .muted{color:rgba(255,255,255,.75)}.hero-amount{font-size:32px;font-weight:900;margin:7px 0}.income-row{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px 0;border-top:1px solid var(--line);font-size:13px}.movement-actions{display:flex;gap:6px;align-items:center}.movement-actions button{padding:6px 8px;font-size:11px}.expense-amount{color:var(--bad)}.income-row:first-child{border-top:0}.check-row{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}.check-row:first-child{border-top:0}.check-row input{width:auto}.check-row input[type=number]{width:105px}.warning-box{background:#fff4da;border:1px solid #f0d18a;border-radius:12px;padding:10px;color:#815d0b;font-size:13px;margin-top:10px}
-
-    .assistant-card{background:linear-gradient(135deg,#ffffff,#f5f8fb);border:1px solid #dce5ed;margin-bottom:12px}.assistant-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.assistant-date{font-size:13px;color:var(--muted);font-weight:700}.assistant-progress{margin:12px 0}.assistant-task{border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:9px;background:#fff}.assistant-task.urgent{border-left:5px solid var(--bad)}.assistant-task.medium{border-left:5px solid var(--warn)}.assistant-task.normal{border-left:5px solid var(--ok)}.task-grid{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}.task-meta{font-size:12px;color:var(--muted);margin-top:4px}.task-amount{font-size:20px;font-weight:900;text-align:right}.done-banner{background:#e2f4ea;color:#176b46;border-radius:13px;padding:14px;font-weight:850;text-align:center}.insight{padding:10px 0;border-top:1px solid var(--line);font-size:14px}.insight:first-child{border-top:0}.priority-badge{display:inline-block;font-size:11px;font-weight:850;border-radius:99px;padding:4px 8px;margin-bottom:4px}.priority-high{background:#f9dfe2;color:#a72f38}.priority-mid{background:#fff0d2;color:#966100}.priority-low{background:#dff3e9;color:#176b46}
-
-    .business-overview{margin:14px 0 4px;padding:14px;border-radius:16px;background:linear-gradient(135deg,#17324d,#2b5876);color:#fff}
-    .business-overview h3{margin:0 0 10px;font-size:15px}.overview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.overview-mini{background:rgba(255,255,255,.12);border-radius:12px;padding:10px}.overview-mini small{display:block;color:rgba(255,255,255,.76);font-size:11px}.overview-mini strong{display:block;margin-top:5px;font-size:17px}
-    .priority-group{border:1px solid var(--line);border-radius:15px;margin-top:10px;background:#fff;overflow:hidden}.priority-group-head{padding:13px;cursor:pointer;user-select:none}.priority-group-head:active{background:#f7f9fb}.priority-group-top{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center}.priority-group-total{font-size:19px;font-weight:900;text-align:right}.priority-group-chevron{font-size:20px;font-weight:900;color:var(--brand);transition:transform .18s}.priority-group.open .priority-group-chevron{transform:rotate(90deg)}.priority-group-detail{display:none;border-top:1px solid var(--line);padding:10px 13px;background:#fcfdfe}.priority-group.open .priority-group-detail{display:block}.priority-business{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}.priority-business:first-child{border-top:0}.priority-business .task-amount{font-size:17px}.priority-business button{margin-top:6px;padding:8px 11px}
-    @media(max-width:430px){.overview-grid{grid-template-columns:1fr}.overview-mini{display:grid;grid-template-columns:1fr auto;align-items:center}.overview-mini strong{margin-top:0}.priority-group-top{grid-template-columns:1fr auto auto}}
-  </style>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Quant Centro" />
+  <title>Centro de Trading Cuantitativo</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <link rel="stylesheet" href="./styles.css?v=6.2.0" />
 </head>
 <body>
-<header>
-  <h1>Planificador de Pagos</h1>
-  <p>Cada deuda y cada ahorro con porcentajes independientes</p>
-  <button id="installBtn" class="install" hidden>Instalar app</button>
-</header>
-
-<main>
-  <section id="inicio" class="active">
-
-    <div class="card assistant-card">
-      <div class="assistant-head"><div><div class="assistant-date" id="assistantDate"></div><h2 style="margin-top:4px">Qué hacer hoy</h2></div><div id="assistantPercent" class="pill paid">0%</div></div>
-      <div class="assistant-progress"><div class="bar"><span id="assistantBar" style="width:0%"></span></div></div>
-      <div id="assistantTasks" class="empty">Agrega deudas, metas y porcentajes para crear tu plan diario.</div>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">Uso personal · Datos públicos</p>
+      <div class="brand-line"><h1>Centro Quant</h1><span class="version-badge">v6.1</span></div>
     </div>
-    <div class="card wide" style="margin-bottom:12px"><h2>Inteligencia financiera</h2><div id="financialInsights" class="empty">Aún no hay suficientes movimientos para detectar patrones.</div></div>
-    <div class="grid">
-      <div class="card wide hero-today"><small class="muted">Total que corresponde apartar hoy</small><div id="todayTotal" class="hero-amount">$0</div><div id="todayBreakdown" class="muted">Sin aportaciones programadas.</div></div>
-      <div class="card metric"><small>Deuda total</small><strong id="mDebt">$0</strong></div>
-      <div class="card metric"><small>Total apartado</small><strong id="mSaved">$0</strong></div>
-      <div class="card metric"><small>Falta por juntar</small><strong id="mMissing">$0</strong></div>
-      <div class="card metric"><small>Pagos activos</small><strong id="mActive">0</strong></div>
-      <div class="card wide next"><h2>Próximo pago</h2><div id="nextText" class="muted">Agrega una deuda para comenzar.</div></div>
-      <div class="card wide"><h2>Qué debe aportar cada negocio hoy</h2><div id="businessToday" class="empty">Configura negocios y porcentajes.</div></div>
-      <div class="card wide"><h2>Distribuciones activas</h2><div id="contribSummary" class="empty">Aún no hay distribuciones.</div></div>
-    </div>
-  </section>
+    <button id="refreshAllBtn" class="icon-btn" aria-label="Actualizar">↻</button>
+  </header>
 
-  <section id="deudas">
-    <div class="card">
-      <div class="row"><h2>Mis deudas</h2><button onclick="openDebt()">+ Agregar</button></div>
-      <div id="debtList"></div>
-    </div>
-  </section>
+  <main>
+    <section id="homeView" class="view active home-v6">
+      <div class="v6-release-banner"><span class="release-dot"></span><div><strong>Centro Quant v6.2 activo</strong><small>Semáforo de decisión y motor del Score explicable.</small></div></div>
 
-  <section id="ahorro">
-    <div class="card">
-      <div class="row"><h2>Metas de ahorro</h2><button onclick="openGoal()">+ Agregar</button></div>
-      <div id="goalList"></div>
-    </div>
-  </section>
+      <article class="decision-hero">
+        <div class="decision-topline"><span id="homePair" class="home-pair">Analizando favoritos…</span><span id="homeUpdated" class="pill">Sin actualizar</span></div>
+        <div class="decision-main">
+          <div class="decision-score-wrap">
+            <span>Score general</span>
+            <strong id="homeScore">--</strong>
+            <small id="homeSide">Buscando oportunidad</small>
+          </div>
+          <div class="decision-copy">
+            <p id="homeDecision" class="home-decision neutral">ESPERANDO DATOS</p>
+            <h2 id="homeHeadline">Conectando con el mercado público</h2>
+            <p id="homeSummary">El sistema comparará tus favoritos y mostrará la oportunidad que merece revisión.</p>
+          </div>
+        </div>
+        <div class="home-kpis">
+          <div><span>Confianza</span><strong id="homeConfidence">--</strong></div>
+          <div><span>Riesgo técnico</span><strong id="homeRisk">--</strong></div>
+          <div><span>Regla R/B</span><strong>1 : 3</strong></div>
+        </div>
+      </article>
 
-  <section id="negocios">
-    <div class="card">
-      <div class="row"><div><h2>Dinero por negocio</h2><div class="muted">Registra ingresos y separa aportaciones sin mezclar el efectivo disponible.</div></div><button onclick="openBusiness()">+ Negocio</button></div>
-      <div id="businessOverview" class="business-overview">
-        <h3>Resumen general</h3>
-        <div class="overview-grid">
-          <div class="overview-mini"><small>Total ingresado</small><strong id="businessTotalIncome">$0</strong></div>
-          <div class="overview-mini"><small>Total gastado</small><strong id="businessTotalExpenses">$0</strong></div>
-          <div class="overview-mini"><small>Disponible total</small><strong id="businessTotalAvailable">$0</strong></div>
+      <div class="home-actions">
+        <button id="homeAnalyzeBtn" class="primary">Ver análisis completo</button>
+        <button id="homePaperBtn" class="secondary">Simular operación</button>
+      </div>
+
+      <section class="home-grid">
+        <article class="home-panel">
+          <div class="home-panel-head"><div><p class="eyebrow">Razones</p><h2>¿Por qué aparece aquí?</h2></div><span class="help-symbol">?</span></div>
+          <div id="homeReasons" class="reason-list"><div class="reason-row neutral"><span>•</span><p>Esperando indicadores del mercado.</p></div></div>
+        </article>
+
+        <article class="home-panel">
+          <div class="home-panel-head"><div><p class="eyebrow">Pulso</p><h2>Mercado observado</h2></div></div>
+          <div class="pulse-grid">
+            <div><span>Analizados</span><strong id="homeAnalyzed">0</strong></div>
+            <div><span>Favorables</span><strong id="homeFavorable">0</strong></div>
+            <div><span>Neutrales</span><strong id="homeNeutral">0</strong></div>
+            <div><span>Evitar</span><strong id="homeAvoid">0</strong></div>
+          </div>
+          <button id="homeMarketBtn" class="ghost wide">Abrir ranking del mercado</button>
+          <button id="homeBacktestBtn" class="ghost wide home-secondary-link">Abrir laboratorio Backtest</button>
+        </article>
+      </section>
+
+      <div class="notice home-notice"><strong>Regla de uso:</strong> el Inicio selecciona la mejor lectura disponible, pero una señal favorable no sustituye el stop, el tamaño de posición ni la confirmación de entrada.</div>
+    </section>
+
+    <section id="dashboardView" class="view">
+      <div class="hero-card">
+        <div>
+          <p class="muted">Estado de tus favoritos</p>
+          <h2 id="marketSummary">Cargando mercado…</h2>
+        </div>
+        <span id="lastUpdate" class="pill">Sin actualizar</span>
+      </div>
+
+      <div class="section-title">
+        <div>
+          <h2>Mercado Hoy</h2>
+          <p>Ranking automático según oportunidad Long o Short.</p>
+        </div>
+        <select id="marketModeSelect" class="compact-select">
+          <option value="long" selected>Long</option>
+          <option value="short">Short</option>
+        </select>
+      </div>
+      <div id="marketRanking" class="ranking-list"></div>
+
+      <div class="section-title">
+        <div>
+          <h2>Favoritos</h2>
+          <p>Scores Long y Short separados.</p>
+        </div>
+        <button id="addAssetBtn" class="primary small">+ Agregar</button>
+      </div>
+      <div id="assetGrid" class="asset-grid"></div>
+
+      <div class="notice">
+        <strong>Importante:</strong> el score mide cuántas condiciones favorables se cumplen. No es una probabilidad garantizada de subida.
+      </div>
+    </section>
+
+    <section id="analysisView" class="view">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Análisis cuantitativo</p>
+          <h2 id="analysisTitle">Selecciona un activo</h2>
+        </div>
+        <button id="backToDashboard" class="ghost">← Volver</button>
+      </div>
+
+      <div class="controls-row">
+        <select id="analysisModeSelect">
+          <option value="long" selected>Lectura Long</option>
+          <option value="short">Lectura Short</option>
+        </select>
+        <select id="timeframeSelect">
+          <option value="4h">4 horas</option>
+          <option value="1d" selected>Diario</option>
+          <option value="1w">Semanal</option>
+          <option value="1M">Mensual</option>
+        </select>
+        <button id="refreshAnalysisBtn" class="secondary">Actualizar</button>
+      </div>
+
+      <div class="analysis-top">
+        <div class="score-card">
+          <span class="muted">Score cuantitativo</span>
+          <strong id="mainScore">--</strong>
+          <span id="mainDecision" class="decision neutral">Sin datos</span>
+        </div>
+        <div class="metric-card">
+          <span>Precio</span><strong id="analysisPrice">--</strong>
+          <small id="analysisChange">--</small>
         </div>
       </div>
-      <div id="businessList"></div>
-    </div>
-  </section>
 
-  <section id="config">
-    <div class="card">
-      <h2>Respaldo</h2>
-      <p class="note">Los datos se guardan únicamente en este dispositivo. Exporta una copia periódicamente.</p>
-      <div class="field"><label>Cuando no haga una aportación</label><select id="catchUpMode"><option value="next">Acumular todo en la siguiente aportación</option><option value="spread">Repartir lo atrasado entre las aportaciones restantes</option></select></div>
-      <div class="toolbar">
-        <button onclick="exportData()">Exportar respaldo</button>
-        <label class="btn secondary">Importar<input id="importFile" type="file" accept="application/json" hidden></label>
-        <button class="danger" onclick="resetData()">Borrar todo</button>
+      <article class="traffic-card" id="trafficCard">
+        <div class="traffic-head">
+          <div>
+            <p class="eyebrow">Semáforo inteligente</p>
+            <h3 id="trafficTitle">Esperando análisis</h3>
+            <p id="trafficMessage">El sistema combinará score y calidad de los factores para darte una instrucción clara.</p>
+          </div>
+          <div id="trafficLight" class="traffic-light neutral" aria-label="Semáforo sin datos">
+            <span class="light red"></span><span class="light yellow"></span><span class="light green"></span>
+          </div>
+        </div>
+        <div id="trafficReasons" class="traffic-reasons"><div class="reason-row neutral"><span>•</span><p>Selecciona un activo y espera los datos.</p></div></div>
+        <button id="trafficNeedsBtn" class="ghost wide" type="button" aria-expanded="false">¿Qué tendría que pasar para ponerse en verde?</button>
+        <div id="trafficNeeds" class="traffic-needs" hidden></div>
+        <small class="traffic-rule">El verde valida la lectura técnica. Antes de operar, el simulador debe confirmar un riesgo/beneficio mínimo de 1:3.</small>
+      </article>
+
+      <article class="score-engine-card">
+        <div class="score-engine-head">
+          <div><p class="eyebrow">Motor del Score</p><h3>De dónde salen los puntos</h3><p>Cada factor aporta una parte de su peso máximo según la lectura actual.</p></div>
+          <span id="scoreWeightTotal" class="pill">Pesos: 100</span>
+        </div>
+        <div id="scoreBreakdown" class="score-breakdown"><div class="notice">Selecciona un activo para ver el desglose.</div></div>
+      </article>
+
+      <div class="chart-card">
+        <div class="chart-head">
+          <div>
+            <strong>Precio y medias</strong>
+            <small id="chartCaption">Últimas velas</small>
+          </div>
+          <div class="legend"><span>Precio</span><span>EMA20</span><span>EMA50</span></div>
+        </div>
+        <canvas id="priceChart" width="900" height="420"></canvas>
       </div>
-    </div>
-  </section>
-</main>
 
-<nav>
-  <button data-tab="inicio" class="active">Inicio</button>
-  <button data-tab="deudas">Deudas</button>
-  <button data-tab="ahorro">Ahorro</button>
-  <button data-tab="negocios">Negocios</button>
-  <button data-tab="config">Ajustes</button>
-</nav>
+      <div id="diagnosticGrid" class="diagnostic-grid"></div>
 
-<dialog id="debtDialog"><form method="dialog" id="debtForm">
-  <h3 id="debtTitle">Nueva deuda</h3><input type="hidden" id="debtId">
-  <div class="field"><label>Deuda o tarjeta</label><input id="debtName" required placeholder="Ej. Liverpool VISA"></div>
-  <div class="field"><label>Saldo actual</label><input id="debtBalance" type="number" min="0" step="0.01" required></div>
-  <div class="field"><label>Monto a pagar</label><input id="debtTarget" type="number" min="0" step="0.01" required></div>
-  <div class="field"><label>Ya apartado</label><input id="debtSaved" type="number" min="0" step="0.01" value="0"></div>
-  <div class="field"><label>Fecha límite</label><input id="debtDue" type="date" required></div>
-  <div class="field"><label>Frecuencia para apartar</label><select id="debtFreq"><option>Diario</option><option selected>Semanal</option><option>Quincenal</option><option>Mensual</option></select></div>
-  <div class="field"><label>Notas</label><textarea id="debtNotes"></textarea></div>
-  <div class="actions"><button type="button" class="secondary" onclick="debtDialog.close()">Cancelar</button><button>Guardar</button></div>
-</form></dialog>
+      <div class="explanation-card">
+        <h3>Lectura clara</h3>
+        <p id="plainExplanation">Selecciona un activo para obtener el diagnóstico.</p>
+      </div>
+    </section>
 
-<dialog id="goalDialog"><form method="dialog" id="goalForm">
-  <h3 id="goalTitle">Nueva meta</h3><input type="hidden" id="goalId">
-  <div class="field"><label>Nombre de la meta</label><input id="goalName" required placeholder="Ej. Fondo para casa"></div>
-  <div class="field"><label>Monto de la meta</label><input id="goalTarget" type="number" min="0" step="0.01" required></div>
-  <div class="field"><label>Acumulado</label><input id="goalSaved" type="number" min="0" step="0.01" value="0"></div>
-  <div class="field"><label>Fecha objetivo</label><input id="goalDue" type="date"></div>
-  <div class="field"><label>Frecuencia para ahorrar</label><select id="goalFreq"><option>Diario</option><option selected>Semanal</option><option>Quincenal</option><option>Mensual</option></select></div>
-  <div class="actions"><button type="button" class="secondary" onclick="goalDialog.close()">Cancelar</button><button>Guardar</button></div>
-</form></dialog>
+    <section id="backtestView" class="view">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Laboratorio</p>
+          <h2>Backtesting sencillo</h2>
+          <p>Prueba reglas sobre el historial descargado. Los resultados incluyen comisión estimada.</p>
+        </div>
+      </div>
 
-<dialog id="allocationDialog"><form method="dialog" id="allocationForm">
-  <h3 id="allocationTitle">Distribución</h3>
-  <p class="note">Esta distribución pertenece solamente a esta deuda o meta. No modifica las demás. Los porcentajes deben sumar 100%.</p>
-  <input type="hidden" id="allocationType"><input type="hidden" id="allocationId">
-  <div id="businessRows"></div>
-  <button type="button" class="secondary" onclick="addBusinessRow()">+ Agregar negocio</button>
-  <div id="allocationSum" class="sum">Total: 0%</div>
-  <div class="actions"><button type="button" class="secondary" onclick="allocationDialog.close()">Cancelar</button><button>Guardar distribución</button></div>
-</form></dialog>
+      <div class="form-card">
+        <div class="form-grid">
+          <label>Activo
+            <select id="btSymbol"></select>
+          </label>
+          <label>Temporalidad
+            <select id="btInterval">
+              <option value="4h">4 horas</option>
+              <option value="1d" selected>Diario</option>
+              <option value="1w">Semanal</option>
+            </select>
+          </label>
+          <label>Regla de entrada
+            <select id="btPreset">
+              <option value="trend">Tendencia: EMA20 &gt; EMA50 y RSI 50–68</option>
+              <option value="pullback">Retroceso: precio &gt; EMA200 y cruza EMA20</option>
+              <option value="breakout">Ruptura: máximo 20 velas + volumen</option>
+            </select>
+          </label>
+          <label>Capital inicial
+            <input id="btCapital" type="number" value="10000" min="100" />
+          </label>
+          <label>Stop %
+            <input id="btStop" type="number" value="3" min="0.2" step="0.1" />
+          </label>
+          <label>Objetivo %
+            <input id="btTarget" type="number" value="9" min="0.2" step="0.1" />
+          </label>
+          <label>Comisión por lado %
+            <input id="btFee" type="number" value="0.1" min="0" step="0.01" />
+          </label>
+          <label>Riesgo por operación %
+            <input id="btRisk" type="number" value="1" min="0.1" max="10" step="0.1" />
+          </label>
+        </div>
+        <button id="runBacktestBtn" class="primary wide">Ejecutar backtest</button>
+      </div>
 
-<dialog id="savingDialog"><form method="dialog" id="savingForm">
-  <h3 id="savingTitle">Registrar aportación</h3>
-  <input type="hidden" id="savingType"><input type="hidden" id="savingItemId"><input type="hidden" id="savingContributionId">
-  <div class="field"><label>Negocio que aporta</label><select id="savingBusiness" required></select></div>
-  <div class="field"><label>Cantidad</label><input id="savingAmount" type="number" min="0.01" step="0.01" required></div>
-  <div class="field"><label>Fecha</label><input id="savingDate" type="date" required></div>
-  <div class="field"><label>Nota opcional</label><textarea id="savingNote" placeholder="Ej. Venta de la semana"></textarea></div>
-  <div id="savingHint" class="note"></div>
-  <div class="actions"><button type="button" class="secondary" onclick="savingDialog.close()">Cancelar</button><button>Guardar aportación</button></div>
-</form></dialog>
+      <div id="btResults" class="results-grid hidden"></div>
+      <div id="btEquityWrap" class="chart-card hidden">
+        <div class="chart-head"><strong>Curva de capital</strong><small>Resultado simulado</small></div>
+        <canvas id="equityChart" width="900" height="360"></canvas>
+      </div>
+      <div class="notice">
+        Un backtest no garantiza resultados futuros. Sirve para descartar ideas débiles y medir reglas antes de arriesgar dinero.
+      </div>
+    </section>
 
-<dialog id="businessDialog"><form method="dialog" id="businessForm">
-  <h3 id="businessTitle">Nuevo negocio</h3><input type="hidden" id="businessId">
-  <div class="field"><label>Nombre del negocio</label><input id="businessName" required placeholder="Ej. Mi Farmacia"></div>
-  <div class="field"><label>Dinero disponible inicial</label><input id="businessOpening" type="number" min="0" step="0.01" value="0"></div>
-  <div class="actions"><button type="button" class="secondary" onclick="businessDialog.close()">Cancelar</button><button>Guardar</button></div>
-</form></dialog>
 
-<dialog id="incomeDialog"><form method="dialog" id="incomeForm">
-  <h3>Registrar ingreso</h3><input type="hidden" id="incomeBusinessId">
-  <div class="field"><label>Negocio</label><div id="incomeBusinessName" class="name"></div></div>
-  <div class="field"><label>Ingreso recibido</label><input id="incomeAmount" type="number" min="0.01" step="0.01" required></div>
-  <div class="field"><label>Fecha</label><input id="incomeDate" type="date" required></div>
-  <div class="field"><label>Nota opcional</label><input id="incomeNote" placeholder="Ej. Venta del día"></div>
-  <div id="incomeSuggestions"></div>
-  <div class="actions"><button type="button" class="secondary" onclick="incomeDialog.close()">Cancelar</button><button type="button" class="secondary" onclick="saveIncome(false)">Solo registrar ingreso</button><button type="button" onclick="saveIncome(true)">Registrar y apartar</button></div>
-</form></dialog>
+    <section id="paperView" class="view paper-v5">
+      <div class="new-version-banner"><strong>✓ NUEVA BASE ACTIVA</strong><span>Pruebas fue reconstruida: riesgo, R/B, diario y aprendizaje.</span></div>
+      <div class="section-title paper-hero">
+        <div>
+          <p class="eyebrow">Laboratorio personal · v6.1</p>
+          <h2>Simulador y diario de operaciones</h2>
+          <p>Planea la entrada, valida el riesgo y aprende de tus resultados sin usar dinero real.</p>
+        </div>
+        <button id="refreshPaperBtn" class="secondary">Revisar abiertas</button>
+      </div>
 
-<dialog id="expenseDialog"><form method="dialog" id="expenseForm">
-  <h3 id="expenseTitle">Registrar gasto</h3><input type="hidden" id="expenseBusinessId"><input type="hidden" id="expenseId">
-  <div class="field"><label>Negocio</label><div id="expenseBusinessName" class="name"></div></div>
-  <div class="field"><label>Monto gastado</label><input id="expenseAmount" type="number" min="0.01" step="0.01" required></div>
-  <div class="field"><label>Categoría</label><select id="expenseCategory" required><option>Mercancía</option><option>Renta</option><option>Servicios</option><option>Nómina</option><option>Transporte</option><option>Mantenimiento</option><option>Impuestos</option><option>Gasto personal</option><option>Otro</option></select></div>
-  <div class="field"><label>Fecha</label><input id="expenseDate" type="date" required></div>
-  <div class="field"><label>Nota opcional</label><input id="expenseNote" placeholder="Ej. Compra a proveedor"></div>
-  <div id="expenseWarning" class="warning-box" hidden></div>
-  <div class="actions"><button type="button" class="secondary" onclick="expenseDialog.close()">Cancelar</button><button type="submit">Guardar gasto</button></div>
-</form></dialog>
+      <div class="paper-layout">
+        <div class="form-card paper-entry-card">
+          <div class="paper-card-title"><span class="step-number">1</span><div><strong>Nueva operación</strong><small>Define la idea antes de entrar</small></div></div>
+          <div class="form-grid">
+            <label>Activo<select id="paperSymbol"></select></label>
+            <label>Dirección<select id="paperSide"><option value="long">Long</option><option value="short">Short</option></select></label>
+            <label>Temporalidad<select id="paperInterval"><option value="4h">4 horas</option><option value="1d" selected>Diario</option><option value="1w">Semanal</option></select></label>
+            <label>Entrada<input id="paperEntry" type="number" step="any" placeholder="Precio actual automático" /></label>
+            <label>Stop por<select id="paperStopMode"><option value="percent">Porcentaje</option><option value="price">Precio</option></select></label>
+            <label>Stop<input id="paperStop" type="number" step="any" value="3" /></label>
+            <label>Objetivo por<select id="paperTargetMode"><option value="percent">Porcentaje</option><option value="price">Precio</option></select></label>
+            <label>Objetivo<input id="paperTarget" type="number" step="any" value="9" /></label>
+            <label>Capital disponible<input id="paperCapital" type="number" min="0" step="any" value="20000" /></label>
+            <label>Riesgo máximo %<input id="paperRiskPct" type="number" min="0.1" max="10" step="0.1" value="1" /></label>
+            <label class="full-field">Motivo o notas<textarea id="paperNotes" rows="3" placeholder="Ej. Score alto, tendencia alineada y volumen confirmando"></textarea></label>
+          </div>
+          <div class="trade-checklist">
+            <strong>Lista de control antes de guardar</strong>
+            <label><input id="checkTrend" type="checkbox" /> La tendencia apoya la dirección</label>
+            <label><input id="checkSignal" type="checkbox" /> Existe una señal concreta de entrada</label>
+            <label><input id="checkRisk" type="checkbox" /> Acepto la pérdida definida por el stop</label>
+            <label><input id="checkNoImpulse" type="checkbox" /> No estoy entrando por impulso o FOMO</label>
+          </div>
+          <div id="paperPreview" class="paper-analysis-panel">Selecciona los datos. Al guardar se capturarán score, RSI, ADX, ATR, volumen y medias.</div>
+          <button id="savePaperBtn" class="primary wide">Guardar operación simulada</button>
+        </div>
 
-<script>
-const KEY='planificador-pagos-v1';
-const money=n=>new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:2}).format(Number(n||0));
-const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2);
-let data=JSON.parse(localStorage.getItem(KEY)||'null')||{debts:[],goals:[]};
-let openDebtId=null, openGoalId=null;
-const openAssistantGroups=new Set();
+        <aside class="paper-guide-card">
+          <div class="paper-card-title"><span class="step-number">2</span><div><strong>Reglas de control</strong><small>Tu filtro antes de operar</small></div></div>
+          <div class="rule-row"><span>Riesgo máximo</span><strong>1% sugerido</strong></div>
+          <div class="rule-row"><span>R/B mínimo</span><strong>1 : 3</strong></div>
+          <div class="rule-row"><span>Operaciones abiertas</span><strong id="paperOpenCount">0</strong></div>
+          <p class="muted compact-note">Una operación puede tener score alto y aun así no cumplir tu gestión de riesgo.</p>
+        </aside>
+      </div>
 
-function todayISO(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
-function migrate(){
-  data.debts=Array.isArray(data.debts)?data.debts:[];
-  if(!Array.isArray(data.goals)) data.goals=data.goal&&data.goal.target?[{...data.goal,id:data.goal.id||uid()}]:[];
-  data.settings=data.settings||{};if(!['next','spread'].includes(data.settings.catchUpMode))data.settings.catchUpMode='next';data.businessWallets=Array.isArray(data.businessWallets)?data.businessWallets:[];data.businessWallets.forEach(b=>{b.incomes=Array.isArray(b.incomes)?b.incomes:[];b.transfers=Array.isArray(b.transfers)?b.transfers:[];b.expenses=Array.isArray(b.expenses)?b.expenses:[]});
-  const old=Array.isArray(data.businesses)?data.businesses:[];
-  data.debts.forEach(d=>{if(!Array.isArray(d.allocations))d.allocations=old.map(x=>({...x}));if(!Array.isArray(d.contributions))d.contributions=[];if(!d.freq)d.freq='Semanal';if(!d.scheduleStart)d.scheduleStart=todayISO();if(d.scheduleStartSaved==null)d.scheduleStartSaved=Number(d.saved||0)});
-  data.goals.forEach(g=>{if(!g.id)g.id=uid();if(!Array.isArray(g.allocations))g.allocations=old.map(x=>({...x}));if(!Array.isArray(g.contributions))g.contributions=[];if(!g.freq)g.freq='Semanal';if(!g.scheduleStart)g.scheduleStart=todayISO();if(g.scheduleStartSaved==null)g.scheduleStartSaved=Number(g.saved||0)});
-  delete data.goal; delete data.businesses;
-}
-migrate();
+      <div class="section-title paper-section-head"><div><p class="eyebrow">Seguimiento</p><h2>Operaciones abiertas</h2><p>Se actualizan al abrir la app o al pulsar Revisar.</p></div></div>
+      <div id="paperOpenList" class="paper-list"></div>
 
-function save(){localStorage.setItem(KEY,JSON.stringify(data));render()}
-function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function dateAt(iso){const d=new Date((iso||todayISO())+'T00:00:00');d.setHours(0,0,0,0);return d}
-function diffDays(from,to){return Math.round((dateAt(to)-dateAt(from))/86400000)}
-function daysUntil(date){if(!date)return 99999;return diffDays(todayISO(),date)}
-function intervalDays(freq){return ({Diario:1,Semanal:7,Quincenal:15,Mensual:30}[freq]||7)}
-function periods(freq,days){if(days<=0)return 1;return Math.max(1,Math.ceil(days/intervalDays(freq)))}
-function remaining(x){return Math.max(0,Number(x.target)-Number(x.saved))}
-function planInfoAt(x,referenceDate=todayISO()){
- const freq=x.freq||'Semanal',step=intervalDays(freq),start=x.scheduleStart||todayISO(),due=x.due;
- if(!due){return {count:0,days:0,normal:remaining(x),today:remaining(x),late:0,ahead:0,expectedNow:0,label:'Sin fecha objetivo',overdue:false}}
- const totalDays=Math.max(1,diffDays(start,due));
- const totalCount=Math.max(1,Math.ceil(totalDays/step));
- const cappedDate=dateAt(referenceDate)>dateAt(due)?due:referenceDate;
- const elapsedDays=Math.max(0,diffDays(start,cappedDate));
- const elapsedCount=Math.min(totalCount,Math.floor(elapsedDays/step)+1);
- const remainingCount=Math.max(0,totalCount-elapsedCount+1);
- const planAmount=Math.max(0,Number(x.target||0)-Number(x.scheduleStartSaved||0));
- const normal=planAmount/totalCount;
- const contributed=Math.max(0,Number(x.saved||0)-Number(x.scheduleStartSaved||0));
- const expectedNow=Math.min(planAmount,normal*elapsedCount);
- const late=Math.max(0,expectedNow-contributed);
- const ahead=Math.max(0,contributed-expectedNow);
- const left=remaining(x),overdue=dateAt(referenceDate)>dateAt(due)&&left>0.009;
- const today=overdue?0:(data.settings?.catchUpMode==='spread'?left/Math.max(1,remainingCount):Math.min(left,late||normal));
- return {count:overdue?0:Math.max(0,remainingCount),days:diffDays(referenceDate,due),normal,today,late,ahead,expectedNow,totalCount,elapsedCount,remainingCount,overdue};
-}
-function planInfo(x){return planInfoAt(x,todayISO())}
-function expectedForContribution(x,business,date){const a=(x.allocations||[]).find(a=>a.name===business);if(!a)return 0;return planInfoAt(x,date||todayISO()).normal*Number(a.pct||0)/100}
-function perPeriod(x){return planInfo(x).today}
-function status(d){if(remaining(d)<=0)return ['Pagado','paid'];if(daysUntil(d.due)<0)return ['Vencido','late'];return ['Pendiente','pending']}
-function allocationBase(x){return x&&x.freq?perPeriod(x):remaining(x)}
-function frequencyLabel(freq){return ({Diario:'diaria',Semanal:'semanal',Quincenal:'quincenal',Mensual:'mensual'}[freq]||String(freq||'').toLowerCase())}
-function scheduleHtml(x){const p=planInfo(x);if(!x.due)return '<div class="schedule-box"><div class="muted">Agrega una fecha objetivo para calcular aportaciones.</div></div>';if(p.overdue)return `<div class="schedule-box"><div class="schedule-overdue">Vencida · faltan ${money(remaining(x))} por cubrir</div><div class="schedule-meta">La fecha límite ya pasó. La app dejó de acumular aportaciones automáticas.</div></div>`;const noun=p.count===1?'aportación':'aportaciones';const pace=p.late>0.009?`<br><span class="schedule-late">Atrasado por ${money(p.late)}</span>`:p.ahead>0.009?`<br><span class="schedule-ahead">Adelantado por ${money(p.ahead)}</span>`:`<br><span class="schedule-ahead">Al corriente</span>`;return `<div class="schedule-box"><div class="schedule-main"><div><span class="muted">Aportación de hoy</span><br><strong>${money(p.today)}</strong></div><div style="text-align:right"><span class="muted">${esc(x.freq)}</span><br><strong>${p.count}</strong> <span class="muted">${noun}</span></div></div><div class="schedule-meta">${Math.max(0,p.days)} días restantes · Aportación normal ${money(p.normal)} ${frequencyLabel(x.freq)}${pace}</div></div>`}
-function allocHtml(x){
- const arr=x.allocations||[]; if(!arr.length)return '<div class="allocation"><div class="muted">Sin distribución. Pulsa “Porcentajes”.</div></div>';
- const base=allocationBase(x),title=x.freq?'Distribución por periodo':'Distribución independiente';
- return `<div class="allocation"><div class="allocation-title">${title}</div>${arr.map(a=>`<div class="alloc-row"><span>${esc(a.name)} · ${Number(a.pct)}%</span><strong>${money(base*Number(a.pct)/100)}</strong></div>`).join('')}</div>`;
-}
-function contributionTotal(x,name){return (x.contributions||[]).filter(c=>c.business===name).reduce((s,c)=>s+Number(c.amount||0),0)}
-function contributionHtml(type,x){
- const arr=x.allocations||[];if(!arr.length)return '';
- const rows=arr.map(a=>{const expected=Number(x.target||0)*Number(a.pct||0)/100,actual=contributionTotal(x,a.name),missing=Math.max(0,expected-actual),done=missing<=0.009;return `<div class="progress-row"><div><strong>${esc(a.name)}</strong><small>${money(actual)} de ${money(expected)}</small></div><div class="${done?'complete-text':'missing-text'}">${done?'Completo':'Faltan '+money(missing)}</div></div>`}).join('');
- const registered=(x.contributions||[]).reduce((s,c)=>s+Number(c.amount||0),0),unassigned=Math.max(0,Number(x.saved||0)-registered),unassignedRow=unassigned>0.009?`<div class="progress-row"><div><strong>Sin negocio asignado</strong><small>Dinero apartado antes de activar este control</small></div><div class="missing-text">${money(unassigned)}</div></div>`:'';
- const history=[...(x.contributions||[])].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).map(c=>{const expected=Number(c.expectedAtTime??expectedForContribution(x,c.business,c.date)),diff=Number(c.amount||0)-expected,status=Math.abs(diff)<0.01?['Cumplido','history-ok']:diff<0?['Faltaron '+money(Math.abs(diff)),'history-short']:['Adelantó '+money(diff),'history-over'];return `<div class="history-entry"><div><strong>${esc(c.business)}</strong> · ${money(c.amount)} de ${money(expected)}<small>${c.date?new Date(c.date+'T00:00:00').toLocaleDateString('es-MX'):''}${c.note?' · '+esc(c.note):''}</small><small class="history-status ${status[1]}">${status[0]}</small></div><div class="history-actions"><button class="secondary" onclick="editContribution('${type}','${x.id}','${c.id}')">Editar</button><button class="danger" onclick="deleteContribution('${type}','${x.id}','${c.id}')">Eliminar</button></div></div>`}).join('');
- return `<div class="progress-box"><div class="progress-title">Avance por negocio</div>${rows}${unassignedRow}${history?`<div class="history"><div class="progress-title">Últimas aportaciones</div>${history}</div>`:''}</div>`;
-}
-function toggleItem(type,id){
- if(type==='debt') openDebtId=openDebtId===id?null:id; else openGoalId=openGoalId===id?null:id;
- render();
-}
-function walletByName(name){return data.businessWallets.find(b=>b.name.trim().toLowerCase()===String(name||'').trim().toLowerCase())}
-function walletBalance(b){return Number(b.opening||0)+(b.incomes||[]).reduce((s,x)=>s+Number(x.amount||0),0)-(b.expenses||[]).reduce((s,x)=>s+Number(x.amount||0),0)-(b.transfers||[]).reduce((s,x)=>s+Number(x.amount||0),0)}
-function businessSuggestions(name){
- const out=[];
- data.debts.forEach(x=>{if(remaining(x)<=.009)return;const a=(x.allocations||[]).find(a=>a.name===name);if(!a)return;const amt=Math.min(remaining(x),planInfo(x).today*Number(a.pct||0)/100);if(amt>.009)out.push({type:'debt',id:x.id,name:x.name,amount:amt,label:'Deuda'})});
- data.goals.forEach(x=>{if(remaining(x)<=.009)return;const a=(x.allocations||[]).find(a=>a.name===name);if(!a)return;const amt=Math.min(remaining(x),planInfo(x).today*Number(a.pct||0)/100);if(amt>.009)out.push({type:'goal',id:x.id,name:x.name,amount:amt,label:'Meta'})});
- return out;
-}
-function allBusinessNames(){const set=new Set(data.businessWallets.map(b=>b.name));[...data.debts,...data.goals].forEach(x=>(x.allocations||[]).forEach(a=>set.add(a.name)));return [...set].filter(Boolean).sort()}
-function renderBusinessOverview(){
- const income=data.businessWallets.reduce((sum,b)=>sum+(b.incomes||[]).reduce((s,x)=>s+Number(x.amount||0),0),0);
- const expenses=data.businessWallets.reduce((sum,b)=>sum+(b.expenses||[]).reduce((s,x)=>s+Number(x.amount||0),0),0);
- const available=data.businessWallets.reduce((sum,b)=>sum+walletBalance(b),0);
- businessTotalIncome.textContent=money(income);businessTotalExpenses.textContent=money(expenses);businessTotalAvailable.textContent=money(available);
-}
-function renderBusinesses(){
- renderBusinessOverview();
- const names=allBusinessNames();
- businessList.innerHTML=names.length?names.map(name=>{let b=walletByName(name);const bal=b?walletBalance(b):0,sugs=businessSuggestions(name),today=sugs.reduce((s,x)=>s+x.amount,0),apart=b?(b.transfers||[]).reduce((s,x)=>s+Number(x.amount||0),0):0,inc=b?(b.incomes||[]).reduce((s,x)=>s+Number(x.amount||0),0):0,expenses=b?(b.expenses||[]).reduce((s,x)=>s+Number(x.amount||0),0):0;const movements=b?[...(b.incomes||[]),...(b.expenses||[]),...(b.transfers||[])].sort((a,c)=>(c.date||'').localeCompare(a.date||'')||(c.createdAt||'').localeCompare(a.createdAt||'')).slice(0,10):[];return `<div class="wallet-card"><div class="row"><div><div class="name">${esc(name)}</div><div class="muted">Disponible real</div><div class="wallet-balance">${money(bal)}</div></div><span class="pill ${bal>=today?'paid':'late'}">${bal>=today?'Puede cubrir hoy':'Fondos insuficientes'}</span></div><div class="wallet-grid"><div class="wallet-mini"><small>Ingresos</small><strong>${money(inc)}</strong></div><div class="wallet-mini"><small>Gastos</small><strong>${money(expenses)}</strong></div><div class="wallet-mini"><small>Apartado</small><strong>${money(apart)}</strong></div><div class="wallet-mini"><small>Corresponde hoy</small><strong>${money(today)}</strong></div></div>${sugs.length?`<div class="allocation"><div class="allocation-title">Sugerido para hoy</div>${sugs.map(x=>`<div class="suggestion"><span>${esc(x.name)} · ${x.label}</span><strong>${money(x.amount)}</strong></div>`).join('')}</div>`:'<div class="muted" style="margin-top:10px">Sin aportaciones pendientes para hoy.</div>'}<div class="toolbar">${b?`<button onclick="openIncome('${b.id}')">+ Registrar ingreso</button><button class="secondary" onclick="openExpense('${b.id}')">− Registrar gasto</button><button class="secondary" onclick="openBusiness('${b.id}')">Editar</button><button class="danger" onclick="removeBusiness('${b.id}')">Eliminar</button>`:`<button onclick="openBusiness('', '${esc(name)}')">Activar billetera</button>`}</div>${movements.length?`<div class="history"><div class="progress-title">Movimientos recientes</div>${movements.map(x=>{const isTransfer=x.kind==='transfer',isExpense=x.kind==='expense';const label=isTransfer?'Apartado para '+esc(x.itemName):isExpense?esc(x.category||'Gasto')+(x.note?' · '+esc(x.note):''):esc(x.note||'Ingreso');const sign=isTransfer||isExpense?'-':'+';const actions=isExpense?`<div class="movement-actions"><strong class="expense-amount">${sign}${money(x.amount)}</strong><button class="secondary" onclick="openExpense('${b.id}','${x.id}')">Editar</button><button class="danger" onclick="deleteExpense('${b.id}','${x.id}')">Eliminar</button></div>`:`<strong>${sign}${money(x.amount)}</strong>`;return `<div class="income-row"><span>${label}<small class="muted">${new Date((x.date||todayISO())+'T00:00:00').toLocaleDateString('es-MX')}</small></span>${actions}</div>`}).join('')}</div>`:''}</div>`}).join(''):'<div class="empty">Agrega un negocio para comenzar a controlar su efectivo.</div>';
-}
-function openBusiness(id='',prefill=''){const b=data.businessWallets.find(x=>x.id===id);businessTitle.textContent=b?'Editar negocio':'Nuevo negocio';businessId.value=b?.id||'';businessName.value=b?.name||prefill||'';businessOpening.value=b?.opening||0;businessDialog.showModal()}
-businessForm.addEventListener('submit',e=>{e.preventDefault();const old=data.businessWallets.find(x=>x.id===businessId.value),obj={id:old?.id||uid(),name:businessName.value.trim(),opening:Number(businessOpening.value||0),incomes:old?.incomes||[],expenses:old?.expenses||[],transfers:old?.transfers||[]};const i=data.businessWallets.findIndex(x=>x.id===obj.id);i>=0?data.businessWallets[i]=obj:data.businessWallets.push(obj);businessDialog.close();save()});
-function removeBusiness(id){const b=data.businessWallets.find(x=>x.id===id);if(!b)return;if((b.incomes||[]).length||(b.expenses||[]).length||(b.transfers||[]).length){if(!confirm('Este negocio tiene movimientos. Al eliminarlo también se borrará su historial de efectivo. ¿Continuar?'))return}else if(!confirm('¿Eliminar este negocio?'))return;data.businessWallets=data.businessWallets.filter(x=>x.id!==id);save()}
-function openIncome(id){const b=data.businessWallets.find(x=>x.id===id);if(!b)return;incomeBusinessId.value=id;incomeBusinessName.textContent=b.name;incomeAmount.value='';incomeDate.value=todayISO();incomeNote.value='';renderIncomeSuggestions();incomeDialog.showModal()}
-function renderIncomeSuggestions(){const b=data.businessWallets.find(x=>x.id===incomeBusinessId.value);if(!b)return;const sugs=businessSuggestions(b.name);incomeSuggestions.innerHTML=sugs.length?`<div class="allocation"><div class="allocation-title">Selecciona qué apartar</div>${sugs.map((x,i)=>`<label class="check-row"><input type="checkbox" class="income-check" data-type="${x.type}" data-id="${x.id}" checked><span>${esc(x.name)} <small class="muted">${x.label}</small></span><input type="number" class="income-part" min="0" step="0.01" value="${x.amount.toFixed(2)}"></label>`).join('')}</div><div class="warning-box">La app no apartará más dinero del ingreso ni más de lo que falta en cada deuda o meta.</div>`:'<div class="note">No hay aportaciones sugeridas para este negocio hoy. Puedes registrar solamente el ingreso.</div>'}
-function saveIncome(distribute){const b=data.businessWallets.find(x=>x.id===incomeBusinessId.value),amount=Number(incomeAmount.value);if(!b||!amount||amount<=0){alert('Escribe un ingreso válido.');return}b.incomes=b.incomes||[];b.transfers=b.transfers||[];b.incomes.push({id:uid(),amount,date:incomeDate.value||todayISO(),note:incomeNote.value.trim()||'Ingreso',kind:'income'});if(distribute){let available=amount;document.querySelectorAll('.income-check').forEach((ch,i)=>{if(!ch.checked||available<=.009)return;const x=getItem(ch.dataset.type,ch.dataset.id),input=ch.closest('.check-row').querySelector('.income-part'),requested=Math.max(0,Number(input.value||0)),use=Math.min(requested,available,remaining(x));if(use<=.009)return;x.contributions=x.contributions||[];x.contributions.push({id:uid(),business:b.name,amount:use,date:incomeDate.value||todayISO(),note:'Apartado desde ingreso de '+b.name,expectedAtTime:expectedForContribution(x,b.name,incomeDate.value||todayISO())});x.saved=Math.min(Number(x.target),Number(x.saved||0)+use);b.transfers.push({id:uid(),amount:use,date:incomeDate.value||todayISO(),itemName:x.name,itemType:ch.dataset.type,kind:'transfer'});available-=use})}incomeDialog.close();save()}
-function openExpense(businessId,id=''){const b=data.businessWallets.find(x=>x.id===businessId);if(!b)return;b.expenses=b.expenses||[];const x=b.expenses.find(e=>e.id===id);expenseTitle.textContent=x?'Editar gasto':'Registrar gasto';expenseBusinessId.value=b.id;expenseId.value=x?.id||'';expenseBusinessName.textContent=b.name;expenseAmount.value=x?.amount||'';expenseCategory.value=x?.category||'Mercancía';expenseDate.value=x?.date||todayISO();expenseNote.value=x?.note||'';const available=walletBalance(b)+(x?Number(x.amount||0):0);expenseWarning.hidden=available>0;expenseWarning.textContent=available<=0?'Este negocio no tiene efectivo disponible. Puedes registrar el gasto, pero el saldo quedará negativo.':'';expenseDialog.showModal()}
-expenseForm.addEventListener('submit',e=>{e.preventDefault();const b=data.businessWallets.find(x=>x.id===expenseBusinessId.value),amount=Number(expenseAmount.value);if(!b||!amount||amount<=0){alert('Escribe un gasto válido.');return}b.expenses=b.expenses||[];const old=b.expenses.find(x=>x.id===expenseId.value),obj={id:old?.id||uid(),amount,category:expenseCategory.value,date:expenseDate.value||todayISO(),note:expenseNote.value.trim(),kind:'expense',createdAt:old?.createdAt||new Date().toISOString()};const i=b.expenses.findIndex(x=>x.id===obj.id);i>=0?b.expenses[i]=obj:b.expenses.push(obj);expenseDialog.close();save()});
-function deleteExpense(businessId,id){const b=data.businessWallets.find(x=>x.id===businessId);if(!b)return;const x=(b.expenses||[]).find(e=>e.id===id);if(!x||!confirm(`¿Eliminar el gasto de ${money(x.amount)}?`))return;b.expenses=b.expenses.filter(e=>e.id!==id);save()}
+      <div class="section-title paper-section-head"><div><p class="eyebrow">Estadísticas</p><h2>Diario de resultados</h2><p>Historial, rendimiento acumulado y patrones de tu sistema.</p></div></div>
+      <div id="paperStats" class="results-grid"></div>
+      <div id="paperInsights" class="insights-card"></div>
+      <div class="journal-toolbar">
+        <select id="paperFilter">
+          <option value="all">Todo el diario</option>
+          <option value="wins">Solo ganadoras</option>
+          <option value="losses">Solo perdedoras</option>
+          <option value="long">Solo Long</option>
+          <option value="short">Solo Short</option>
+        </select>
+        <button id="exportPaperBtn" class="secondary">Exportar CSV</button>
+      </div>
+      <div id="paperClosedList" class="paper-list"></div>
+    </section>
 
-function todaysContribution(x,business){return (x.contributions||[]).filter(c=>c.business===business&&c.date===todayISO()).reduce((s,c)=>s+Number(c.amount||0),0)}
-function dailyTasks(){
- const tasks=[];
- const add=(type,x,label)=>{
-   if(remaining(x)<=.009||!(x.allocations||[]).length)return;
-   const p=planInfo(x);if(p.overdue)return;
-   (x.allocations||[]).forEach(a=>{
-     const expected=Math.min(remaining(x),p.today*Number(a.pct||0)/100);
-     const done=todaysContribution(x,a.name);
-     const amount=Math.max(0,expected-done);
-     if(amount>.009){const days=daysUntil(x.due);tasks.push({type,id:x.id,name:x.name,business:a.name,amount,label,days,done,expected})}
-   });
- };
- data.debts.forEach(x=>add('debt',x,'Deuda'));data.goals.forEach(x=>add('goal',x,'Meta'));
- return tasks.sort((a,b)=>(a.days-b.days)||(b.amount-a.amount));
-}
-function openSuggestedSaving(type,id,business,amount){addSaving(type,id);savingBusiness.value=business;updateSavingHint(false);savingAmount.value=Number(amount).toFixed(2)}
-function openSuggestedSavingEncoded(type,id,businessEncoded,amount){openSuggestedSaving(type,id,decodeURIComponent(businessEncoded),amount)}
-function toggleAssistantGroup(key){openAssistantGroups.has(key)?openAssistantGroups.delete(key):openAssistantGroups.add(key);renderDailyAssistant()}
-function renderDailyAssistant(){
- const date=new Date(todayISO()+'T00:00:00');assistantDate.textContent=date.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
- const tasks=dailyTasks();
- const allExpected=[];const addExpected=(x)=>{if(remaining(x)<=.009||!(x.allocations||[]).length||planInfo(x).overdue)return;(x.allocations||[]).forEach(a=>{const e=Math.min(remaining(x),planInfo(x).today*Number(a.pct||0)/100);if(e>.009)allExpected.push({x,a,e,d:todaysContribution(x,a.name)})})};data.debts.forEach(addExpected);data.goals.forEach(addExpected);
- const expected=allExpected.reduce((s,z)=>s+z.e,0),done=allExpected.reduce((s,z)=>s+Math.min(z.e,z.d),0),pct=expected?Math.min(100,Math.round(done/expected*100)):100;
- assistantPercent.textContent=pct+'%';assistantBar.style.width=pct+'%';
- if(!allExpected.length){assistantTasks.innerHTML='<div class="done-banner">No tienes aportaciones programadas para hoy.</div>'}
- else if(!tasks.length){assistantTasks.innerHTML='<div class="done-banner">✓ Día completado. Todas las aportaciones de hoy están cubiertas.</div>'}
- else {
-   const groups=[];
-   tasks.forEach(t=>{const key=t.type+'|'+t.id;let g=groups.find(x=>x.key===key);if(!g){g={key,type:t.type,id:t.id,name:t.name,label:t.label,days:t.days,tasks:[]};groups.push(g)}g.tasks.push(t)});
-   assistantTasks.innerHTML=groups.map(g=>{
-     const urgency=g.days<=3?'urgent':g.days<=7?'medium':'normal',badge=g.days<=3?['Prioridad alta','priority-high']:g.days<=7?['Prioridad media','priority-mid']:['Programada','priority-low'];
-     const total=g.tasks.reduce((sum,t)=>sum+Number(t.amount||0),0),open=openAssistantGroups.has(g.key);
-     const dueText=Number.isFinite(g.days)?(g.days<0?'Vencida':g.days===0?'Vence hoy':'Vence en '+g.days+' días'):'';
-     return `<div class="priority-group ${open?'open':''} ${urgency}"><div class="priority-group-head" onclick="toggleAssistantGroup('${g.key}')"><div class="priority-group-top"><div><span class="priority-badge ${badge[1]}">${badge[0]}</span><div class="name">${esc(g.name)}</div><div class="task-meta">${g.label}${dueText?' · '+dueText:''} · ${g.tasks.length} ${g.tasks.length===1?'negocio':'negocios'}</div></div><div class="priority-group-total">${money(total)}</div><div class="priority-group-chevron">›</div></div></div><div class="priority-group-detail">${g.tasks.map(t=>`<div class="priority-business"><div><strong>${esc(t.business)}</strong><div class="task-meta">Aportación pendiente de hoy</div></div><div style="text-align:right"><div class="task-amount">${money(t.amount)}</div><button onclick="openSuggestedSavingEncoded('${t.type}','${t.id}','${encodeURIComponent(t.business)}',${t.amount})">Registrar</button></div></div>`).join('')}</div></div>`
-   }).join('');
- }
- renderFinancialInsights();
-}
-function renderFinancialInsights(){
- const insights=[];
- const overdue=[...data.debts.map(x=>({...x,_kind:'deuda'})),...data.goals.map(x=>({...x,_kind:'meta'}))].filter(x=>remaining(x)>.009&&x.due&&daysUntil(x.due)<0);
- if(overdue.length)insights.push(`<strong>Atención:</strong> tienes ${overdue.length} ${overdue.length===1?'elemento vencido':'elementos vencidos'} por un total de ${money(overdue.reduce((s,x)=>s+remaining(x),0))}.`);
- const contribByBusiness={};[...data.debts,...data.goals].forEach(x=>(x.contributions||[]).forEach(c=>contribByBusiness[c.business]=(contribByBusiness[c.business]||0)+Number(c.amount||0)));
- const top=Object.entries(contribByBusiness).sort((a,b)=>b[1]-a[1])[0];if(top)insights.push(`<strong>${esc(top[0])}</strong> es el negocio que más ha aportado hasta ahora: ${money(top[1])}.`);
- const todayByBusiness=allBusinessNames().map(name=>({name,need:businessSuggestions(name).reduce((s,x)=>s+x.amount,0),balance:walletByName(name)?walletBalance(walletByName(name)):0})).filter(x=>x.need>.009);
- const short=todayByBusiness.filter(x=>x.balance+0.009<x.need);if(short.length)insights.push(`${short.length===1?'Un negocio no tiene':'Hay '+short.length+' negocios sin'} efectivo suficiente para cubrir lo programado hoy: ${short.map(x=>esc(x.name)).join(', ')}.`);
- const completed=data.debts.filter(x=>remaining(x)<=.009).length+data.goals.filter(x=>remaining(x)<=.009).length;if(completed)insights.push(`Ya completaste <strong>${completed}</strong> ${completed===1?'deuda o meta':'deudas o metas'} en este planificador.`);
- if(!insights.length){const active=data.debts.length+data.goals.length;if(active)insights.push('Tus registros están al corriente. Conforme acumules movimientos, aquí aparecerán patrones útiles sobre negocios, atrasos y cumplimiento.');}
- financialInsights.innerHTML=insights.length?insights.map(x=>`<div class="insight">${x}</div>`).join(''):'<div class="empty">Agrega movimientos para comenzar a detectar patrones.</div>';
-}
+    <section id="positionView" class="view">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Gestión de riesgo</p>
+          <h2>Calculadora de posición</h2>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="form-grid">
+          <label>Capital disponible
+            <input id="posCapital" type="number" value="20000" />
+          </label>
+          <label>Riesgo máximo %
+            <input id="posRisk" type="number" value="1" step="0.1" />
+          </label>
+          <label>Precio de entrada
+            <input id="posEntry" type="number" placeholder="Ej. 65000" step="any" />
+          </label>
+          <label>Stop loss
+            <input id="posStop" type="number" placeholder="Ej. 63000" step="any" />
+          </label>
+          <label>Objetivo
+            <input id="posTarget" type="number" placeholder="Ej. 71000" step="any" />
+          </label>
+        </div>
+        <button id="calcPositionBtn" class="primary wide">Calcular operación</button>
+      </div>
+      <div id="positionResults" class="results-grid hidden"></div>
+    </section>
 
-function render(){
- const totalDebt=data.debts.reduce((s,d)=>s+Number(d.balance||0),0), saved=data.debts.reduce((s,d)=>s+Number(d.saved||0),0), missing=data.debts.reduce((s,d)=>s+remaining(d),0);
- mDebt.textContent=money(totalDebt);mSaved.textContent=money(saved);mMissing.textContent=money(missing);mActive.textContent=data.debts.filter(d=>remaining(d)>0).length;
- const allSched=[...data.debts.map(x=>({...x,_type:'Deuda'})),...data.goals.map(x=>({...x,_type:'Meta'}))].filter(x=>remaining(x)>.009);const dueToday=allSched.reduce((s,x)=>s+planInfo(x).today,0);todayTotal.textContent=money(dueToday);const dToday=data.debts.reduce((s,x)=>s+(remaining(x)>.009?planInfo(x).today:0),0),gToday=data.goals.reduce((s,x)=>s+(remaining(x)>.009?planInfo(x).today:0),0);todayBreakdown.textContent=`Deudas ${money(dToday)} · Metas ${money(gToday)}`;const bt=allBusinessNames().map(name=>({name,amount:businessSuggestions(name).reduce((s,x)=>s+x.amount,0)})).filter(x=>x.amount>.009);businessToday.innerHTML=bt.length?bt.map(x=>`<div class="item"><div class="row"><span class="name">${esc(x.name)}</span><strong>${money(x.amount)}</strong></div></div>`).join(''):'<div class="empty">No hay aportaciones asignadas para hoy.</div>';
- const active=[...data.debts].filter(d=>remaining(d)>0).sort((a,b)=>(a.due||'').localeCompare(b.due||''));
- if(active.length){const d=active[0],days=daysUntil(d.due);nextText.innerHTML=`<div class="row"><div><div class="name">${esc(d.name)}</div><div class="muted">${new Date(d.due+'T00:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'long',year:'numeric'})}</div></div><div class="days">${days<0?Math.abs(days)+' días vencido':days===0?'Hoy':days+' días'}</div></div><div style="margin-top:10px">Apartar ${money(perPeriod(d))} ${d.freq.toLowerCase()} · faltan ${money(remaining(d))}</div>`} else nextText.textContent='Agrega una deuda para comenzar.';
- debtList.innerHTML=data.debts.length?[...data.debts].sort((a,b)=>(a.due||'').localeCompare(b.due||'')).map(d=>{
-   const [st,cl]=status(d),pct=Math.min(100,Number(d.target)?Number(d.saved)/Number(d.target)*100:0),open=openDebtId===d.id;
-   return `<div class="compact-item ${open?'open':''}"><div class="compact-head" onclick="toggleItem('debt','${d.id}')"><div class="compact-top"><div><div class="name">${esc(d.name)}</div><div class="muted">Vence ${new Date(d.due+'T00:00:00').toLocaleDateString('es-MX')} · ${d.freq} · ${planInfo(d).count} aportaciones</div></div><span class="pill ${cl}">${st}</span><span class="compact-chevron">›</span></div><div class="compact-summary"><div><span class="muted">Apartado</span><div class="amount">${money(d.saved)} de ${money(d.target)}</div></div><div style="text-align:right"><span class="muted">Falta</span><div class="amount">${money(remaining(d))}</div></div></div><div class="bar"><span style="width:${pct}%"></span></div></div><div class="compact-detail">${scheduleHtml(d)}${allocHtml(d)}${contributionHtml('debt',d)}<div class="toolbar"><button class="secondary" onclick="event.stopPropagation();addSaving('debt','${d.id}')">+ Apartar</button><button onclick="event.stopPropagation();openAllocation('debt','${d.id}')">Porcentajes</button><button class="secondary" onclick="event.stopPropagation();openDebt('${d.id}')">Editar</button><button class="danger" onclick="event.stopPropagation();removeItem('debt','${d.id}')">Eliminar</button></div></div></div>`
- }).join(''):'<div class="empty">No hay deudas. Pulsa “Agregar”.</div>';
- goalList.innerHTML=data.goals.length?data.goals.map(g=>{
-   const pct=Math.min(100,Number(g.target)?Number(g.saved)/Number(g.target)*100:0),open=openGoalId===g.id,done=remaining(g)<=0,overdue=!!g.due&&daysUntil(g.due)<0&&!done;
-   return `<div class="compact-item ${open?'open':''}"><div class="compact-head" onclick="toggleItem('goal','${g.id}')"><div class="compact-top"><div><div class="name">${esc(g.name)}</div><div class="muted">${g.due?'Fecha objetivo '+new Date(g.due+'T00:00:00').toLocaleDateString('es-MX')+' · '+g.freq+' · '+planInfo(g).count+' aportaciones':'Sin fecha objetivo'}</div></div><span class="pill ${done?'paid':overdue?'late':'pending'}">${done?'Cumplida':overdue?'Vencida':'En proceso'}</span><span class="compact-chevron">›</span></div><div class="compact-summary"><div><span class="muted">Ahorrado</span><div class="amount">${money(g.saved)} de ${money(g.target)}</div></div><div style="text-align:right"><span class="muted">Falta</span><div class="amount">${money(remaining(g))}</div></div></div><div class="bar"><span style="width:${pct}%"></span></div></div><div class="compact-detail">${scheduleHtml(g)}${allocHtml(g)}${contributionHtml('goal',g)}<div class="toolbar"><button class="secondary" onclick="event.stopPropagation();addSaving('goal','${g.id}')">+ Ahorrar</button><button onclick="event.stopPropagation();openAllocation('goal','${g.id}')">Porcentajes</button><button class="secondary" onclick="event.stopPropagation();openGoal('${g.id}')">Editar</button><button class="danger" onclick="event.stopPropagation();removeItem('goal','${g.id}')">Eliminar</button></div></div></div>`
- }).join(''):'<div class="empty">No hay metas. Pulsa “Agregar”.</div>';
- renderSummary();renderBusinesses();renderDailyAssistant();
-}
-function renderSummary(){
- const all=[...data.debts.map(x=>({...x,type:'Deuda'})),...data.goals.map(x=>({...x,type:'Ahorro'}))].filter(x=>(x.allocations||[]).length);
- contribSummary.innerHTML=all.length?all.map(x=>`<div class="item"><div class="name">${esc(x.name)} <span class="muted">· ${x.type}</span></div>${allocHtml(x)}</div>`).join(''):'<div class="empty">Configura los porcentajes dentro de cada deuda o meta.</div>';
-}
-function openDebt(id){
- const d=data.debts.find(x=>x.id===id);debtTitle.textContent=d?'Editar deuda':'Nueva deuda';debtId.value=d?.id||'';debtName.value=d?.name||'';debtBalance.value=d?.balance||'';debtTarget.value=d?.target||'';debtSaved.value=d?.saved||0;debtDue.value=d?.due||'';debtFreq.value=d?.freq||'Semanal';debtNotes.value=d?.notes||'';debtDialog.showModal()
-}
-debtForm.addEventListener('submit',e=>{e.preventDefault();const old=data.debts.find(d=>d.id===debtId.value),saved=+debtSaved.value,changed=!old||Number(old.target)!==+debtTarget.value||old.due!==debtDue.value||old.freq!==debtFreq.value;const obj={id:debtId.value||uid(),name:debtName.value.trim(),balance:+debtBalance.value,target:+debtTarget.value,saved,due:debtDue.value,freq:debtFreq.value,notes:debtNotes.value.trim(),allocations:old?.allocations||[],contributions:old?.contributions||[],scheduleStart:changed?todayISO():old.scheduleStart,scheduleStartSaved:changed?saved:old.scheduleStartSaved};const i=data.debts.findIndex(d=>d.id===obj.id);i>=0?data.debts[i]=obj:data.debts.push(obj);debtDialog.close();save()});
-function openGoal(id){
- const g=data.goals.find(x=>x.id===id);goalTitle.textContent=g?'Editar meta':'Nueva meta';goalId.value=g?.id||'';goalName.value=g?.name||'';goalTarget.value=g?.target||'';goalSaved.value=g?.saved||0;goalDue.value=g?.due||'';goalFreq.value=g?.freq||'Semanal';goalDialog.showModal()
-}
-goalForm.addEventListener('submit',e=>{e.preventDefault();const old=data.goals.find(g=>g.id===goalId.value),saved=+goalSaved.value,changed=!old||Number(old.target)!==+goalTarget.value||old.due!==goalDue.value||old.freq!==goalFreq.value;const obj={id:goalId.value||uid(),name:goalName.value.trim(),target:+goalTarget.value,saved,due:goalDue.value,freq:goalFreq.value,allocations:old?.allocations||[],contributions:old?.contributions||[],scheduleStart:changed?todayISO():old.scheduleStart,scheduleStartSaved:changed?saved:old.scheduleStartSaved};const i=data.goals.findIndex(g=>g.id===obj.id);i>=0?data.goals[i]=obj:data.goals.push(obj);goalDialog.close();save()});
-function getItem(type,id){return type==='debt'?data.debts.find(x=>x.id===id):data.goals.find(x=>x.id===id)}
-function addSaving(type,id){
- const x=getItem(type,id);if(!(x.allocations||[]).length){alert('Primero configura los porcentajes y negocios.');openAllocation(type,id);return}
- savingType.value=type;savingItemId.value=id;savingContributionId.value='';savingTitle.textContent=type==='debt'?`Apartar para ${x.name}`:`Ahorrar para ${x.name}`;
- savingBusiness.innerHTML=(x.allocations||[]).map(a=>`<option value="${esc(a.name)}">${esc(a.name)}</option>`).join('');const first=(x.allocations||[])[0];savingAmount.value=first?(planInfo(x).today*Number(first.pct||0)/100).toFixed(2):planInfo(x).today.toFixed(2);savingDate.value=new Date().toISOString().slice(0,10);savingNote.value='';updateSavingHint();savingDialog.showModal()
-}
-function updateSavingHint(resetAmount=true){const x=getItem(savingType.value,savingItemId.value);if(!x)return;const a=(x.allocations||[]).find(a=>a.name===savingBusiness.value);if(!a)return;const expected=Number(x.target||0)*Number(a.pct||0)/100,actual=contributionTotal(x,a.name),p=planInfoAt(x,savingDate.value||todayISO()),suggested=p.overdue?0:p.today*Number(a.pct||0)/100;savingHint.textContent=p.overdue?`La fecha límite ya pasó. Puedes registrar una aportación manual; faltan ${money(Math.max(0,expected-actual))} de ${a.name}.`:`Aportación sugerida para esta fecha de ${a.name}: ${money(suggested)}. Lleva ${money(actual)} de ${money(expected)}; falta ${money(Math.max(0,expected-actual))}.`;if(resetAmount&&!savingContributionId.value)savingAmount.value=suggested.toFixed(2)}
-savingBusiness.addEventListener('change',()=>updateSavingHint(true));savingDate.addEventListener('change',()=>updateSavingHint(true));
-savingForm.addEventListener('submit',e=>{e.preventDefault();const x=getItem(savingType.value,savingItemId.value),amount=Number(savingAmount.value);if(!x||!amount||amount<=0)return;x.contributions=x.contributions||[];const editing=x.contributions.find(c=>c.id===savingContributionId.value),oldAmount=Number(editing?.amount||0),remainingTotal=Math.max(0,Number(x.target)-Number(x.saved)+oldAmount);if(amount>remainingTotal&&!confirm(`Solo faltan ${money(remainingTotal)} en total. ¿Deseas registrar ${money(amount)} de todos modos?`))return;const record={id:editing?.id||uid(),business:savingBusiness.value,amount,date:savingDate.value,note:savingNote.value.trim(),expectedAtTime:expectedForContribution(x,savingBusiness.value,savingDate.value)};if(editing){Object.assign(editing,record)}else{x.contributions.push(record)}x.saved=Math.min(Number(x.target),Math.max(0,Number(x.saved)-oldAmount+amount));savingDialog.close();save()});
-function editContribution(type,itemId,contributionId){const x=getItem(type,itemId),c=(x?.contributions||[]).find(c=>c.id===contributionId);if(!x||!c)return;savingType.value=type;savingItemId.value=itemId;savingContributionId.value=contributionId;savingTitle.textContent='Editar aportación';savingBusiness.innerHTML=(x.allocations||[]).map(a=>`<option value="${esc(a.name)}">${esc(a.name)}</option>`).join('');savingBusiness.value=c.business;savingAmount.value=Number(c.amount).toFixed(2);savingDate.value=c.date||todayISO();savingNote.value=c.note||'';updateSavingHint(false);savingDialog.showModal()}
-function deleteContribution(type,itemId,contributionId){const x=getItem(type,itemId),c=(x.contributions||[]).find(c=>c.id===contributionId);if(!x||!c)return;if(confirm(`¿Eliminar la aportación de ${money(c.amount)} de ${c.business}?`)){x.contributions=x.contributions.filter(y=>y.id!==contributionId);x.saved=Math.max(0,Number(x.saved)-Number(c.amount));save()}}
+    <section id="settingsView" class="view">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">Configuración</p>
+          <h2>Sistema cuantitativo</h2>
+          <p>Estos pesos determinan el score. Después podremos ajustarlos con evidencia del backtest.</p>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="weight-summary"><div><strong>Personaliza tu estrategia</strong><small>Los seis pesos deben sumar 100.</small></div><strong id="weightsTotal">100 / 100</strong></div>
+        <div class="weight-presets">
+          <button type="button" class="ghost" data-weight-preset="balanced">Equilibrado</button>
+          <button type="button" class="ghost" data-weight-preset="trend">Tendencia</button>
+          <button type="button" class="ghost" data-weight-preset="momentum">Momentum</button>
+        </div>
+        <div id="weightsForm" class="weights"></div>
+        <button id="saveWeightsBtn" class="primary wide">Guardar y recalcular</button>
+        <button id="resetDataBtn" class="danger wide">Restablecer aplicación</button>
+      </div>
+      <div class="notice">
+        Los datos personales y preferencias se guardan localmente en este dispositivo. La app no pide claves de exchange.
+      </div>
+    </section>
+  </main>
+  <div class="build-label">Centro Quant v6.2 · Semáforo inteligente</div>
 
-function removeItem(type,id){if(confirm(type==='debt'?'¿Eliminar esta deuda?':'¿Eliminar esta meta?')){if(type==='debt')data.debts=data.debts.filter(x=>x.id!==id);else data.goals=data.goals.filter(x=>x.id!==id);save()}}
-function openAllocation(type,id){
- const x=getItem(type,id);allocationType.value=type;allocationId.value=id;allocationTitle.textContent=`Porcentajes de ${x.name}`;businessRows.innerHTML='';
- const arr=(x.allocations||[]).length?x.allocations:[{name:'Mi Farmacia',pct:100}];
- arr.forEach(addBusinessRow);updateAllocationPreview();allocationDialog.showModal()
-}
-function addBusinessRow(b={name:'',pct:0}){
- businessRows.insertAdjacentHTML('beforeend',`<div class="business-row"><input class="bname" placeholder="Nombre del negocio" value="${esc(b.name)}"><input class="bpct" type="number" min="0" max="100" step="0.01" value="${Number(b.pct)||0}" oninput="updateAllocationPreview()"><button type="button" class="danger" onclick="this.parentElement.remove();updateAllocationPreview()">×</button><div class="preview"></div></div>`);
- updateAllocationPreview()
-}
-function updateAllocationPreview(){
- const x=getItem(allocationType.value,allocationId.value),base=x?allocationBase(x):0, rows=[...businessRows.querySelectorAll('.business-row')];let sum=0;
- rows.forEach(r=>{const p=Number(r.querySelector('.bpct').value)||0;sum+=p;r.querySelector('.preview').textContent=`${p}% equivale a ${money(base*p/100)}${x?.freq?' por periodo':''}`});
- allocationSum.textContent=`Total: ${sum}%`;allocationSum.classList.toggle('bad',Math.abs(sum-100)>.01)
-}
-allocationForm.addEventListener('submit',e=>{e.preventDefault();const x=getItem(allocationType.value,allocationId.value);const rows=[...businessRows.querySelectorAll('.business-row')];const arr=rows.map(r=>({name:r.querySelector('.bname').value.trim(),pct:Number(r.querySelector('.bpct').value)||0})).filter(a=>a.name);const sum=arr.reduce((s,a)=>s+a.pct,0);if(!arr.length){alert('Agrega al menos un negocio.');return}if(Math.abs(sum-100)>.01){alert('Los porcentajes deben sumar 100%. Ahora suman '+sum+'%.');return}x.allocations=arr;allocationDialog.close();save()});
-function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='respaldo-planificador-pagos.json';a.click();URL.revokeObjectURL(a.href)}
-importFile.addEventListener('change',async e=>{try{const obj=JSON.parse(await e.target.files[0].text());if(!obj.debts)throw Error();data=obj;migrate();save();alert('Respaldo importado.')}catch{alert('El archivo no es un respaldo válido.')}})
-function resetData(){if(confirm('Esto borrará todos los datos guardados en este dispositivo.')){data={debts:[],goals:[],businessWallets:[],settings:{catchUpMode:'next'}};save()}}
-catchUpMode.value=data.settings.catchUpMode;catchUpMode.addEventListener('change',()=>{data.settings.catchUpMode=catchUpMode.value;save()});
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('section,nav button').forEach(x=>x.classList.remove('active'));document.getElementById(b.dataset.tab).classList.add('active');b.classList.add('active')})
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
-let deferredPrompt;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;installBtn.hidden=false});installBtn.onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=null;installBtn.hidden=true}}
-save();
-</script>
+  <nav class="bottom-nav">
+    <button data-view="homeView" class="active"><span>⌂</span>Inicio</button>
+    <button data-view="dashboardView"><span>▥</span>Mercado</button>
+    <button data-view="paperView"><span>✎</span>Pruebas</button>
+    <button data-view="positionView"><span>◎</span>Riesgo</button>
+    <button data-view="settingsView"><span>⚙</span>Sistema</button>
+  </nav>
+
+  <dialog id="assetDialog">
+    <form method="dialog" class="dialog-card">
+      <h3>Agregar criptomoneda</h3>
+      <p>Escribe el símbolo usado contra USDT. Ejemplos: BTC, ETH, LINK, SOL.</p>
+      <input id="newAssetInput" maxlength="12" autocomplete="off" placeholder="BTC" />
+      <div class="dialog-actions">
+        <button value="cancel" class="ghost">Cancelar</button>
+        <button id="confirmAddAsset" value="default" class="primary">Agregar</button>
+      </div>
+      <p id="assetDialogError" class="error"></p>
+    </form>
+  </dialog>
+
+  <script src="./app.js?v=6.2.0"></script>
 </body>
 </html>
