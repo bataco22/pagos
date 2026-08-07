@@ -17,3 +17,6 @@ Actualización v12:
 - Las aportaciones manuales de deudas/metas descuentan automáticamente del disponible del negocio.
 - Editar o eliminar una aportación sincroniza también el apartado de la billetera.
 - La pestaña Ahorro muestra el total acumulado de todas las metas.
+
+
+Versión 14: añade Total pendiente en Deudas, que disminuye automáticamente conforme se registran aportaciones/pagos, y muestra pagado/apartado y deuda original.

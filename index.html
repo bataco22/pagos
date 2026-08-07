@@ -64,7 +64,7 @@
 <header>
   <h1>Planificador de Pagos</h1>
   <p>Cada deuda y cada ahorro con porcentajes independientes</p>
-  <div class="version-badge">Versión 13 · Ahorros sincronizados</div>
+  <div class="version-badge">Versión 14 · Deuda total dinámica</div>
   <button id="installBtn" class="install" hidden>Instalar app</button>
 </header>
 
@@ -92,6 +92,7 @@
   <section id="deudas">
     <div class="card">
       <div class="row"><h2>Mis deudas</h2><button onclick="openDebt()">+ Agregar</button></div>
+      <div class="savings-overview"><small>Total pendiente de todas tus deudas</small><strong id="debtTotalPending">$0</strong><span id="debtTotalDetail">$0 pagado/apartado · $0 deuda original</span></div>
       <div id="debtList"></div>
     </div>
   </section>
@@ -383,8 +384,9 @@ function renderFinancialInsights(){
 }
 
 function render(){
- const totalDebt=data.debts.reduce((s,d)=>s+Number(d.balance||0),0), saved=data.debts.reduce((s,d)=>s+Number(d.saved||0),0), missing=data.debts.reduce((s,d)=>s+remaining(d),0);
+ const totalDebt=data.debts.reduce((s,d)=>s+Number(d.target||d.balance||0),0), saved=data.debts.reduce((s,d)=>s+Number(d.saved||0),0), missing=data.debts.reduce((s,d)=>s+remaining(d),0);
  mDebt.textContent=money(totalDebt);mSaved.textContent=money(saved);mMissing.textContent=money(missing);mActive.textContent=data.debts.filter(d=>remaining(d)>0).length;
+ const debtPendingEl=document.getElementById('debtTotalPending'),debtDetailEl=document.getElementById('debtTotalDetail');if(debtPendingEl)debtPendingEl.textContent=money(missing);if(debtDetailEl)debtDetailEl.textContent=`${money(saved)} pagado/apartado · ${money(totalDebt)} deuda original`;
  const totalGoalSaved=data.goals.reduce((s,g)=>s+Number(g.saved||0),0),completedGoals=data.goals.filter(g=>remaining(g)<=.009).length;const totalEl=document.getElementById('goalTotalSaved'),detailEl=document.getElementById('goalTotalDetail');if(totalEl)totalEl.textContent=money(totalGoalSaved);if(detailEl)detailEl.textContent=`${data.goals.length} ${data.goals.length===1?'meta registrada':'metas registradas'} · ${completedGoals} ${completedGoals===1?'cumplida':'cumplidas'}`;
  const allSched=[...data.debts.map(x=>({...x,_type:'Deuda'})),...data.goals.map(x=>({...x,_type:'Meta'}))].filter(x=>remaining(x)>.009);const dueToday=allSched.reduce((s,x)=>s+planInfo(x).today,0);todayTotal.textContent=money(dueToday);const dToday=data.debts.reduce((s,x)=>s+(remaining(x)>.009?planInfo(x).today:0),0),gToday=data.goals.reduce((s,x)=>s+(remaining(x)>.009?planInfo(x).today:0),0);todayBreakdown.textContent=`Deudas ${money(dToday)} · Metas ${money(gToday)}`;const bt=allBusinessNames().map(name=>({name,amount:businessSuggestions(name).reduce((s,x)=>s+x.amount,0)})).filter(x=>x.amount>.009);businessToday.innerHTML=bt.length?bt.map(x=>`<div class="item"><div class="row"><span class="name">${esc(x.name)}</span><strong>${money(x.amount)}</strong></div></div>`).join(''):'<div class="empty">No hay aportaciones asignadas para hoy.</div>';
  const active=[...data.debts].filter(d=>remaining(d)>0).sort((a,b)=>(a.due||'').localeCompare(b.due||''));
