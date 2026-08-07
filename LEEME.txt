@@ -20,3 +20,12 @@ Actualización v12:
 
 
 Versión 14: añade Total pendiente en Deudas, que disminuye automáticamente conforme se registran aportaciones/pagos, y muestra pagado/apartado y deuda original.
+
+
+VERSIÓN 15 — DASHBOARD EJECUTIVO
+- Inicio rediseñado como resumen financiero.
+- Disponible, ahorrado, deuda pendiente y patrimonio neto.
+- Acciones rápidas.
+- Plan del día plegable.
+- Resumen de negocios y actividad reciente.
+- Deudas, Ahorros y Negocios conservan su funcionamiento de v14.

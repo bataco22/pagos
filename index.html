@@ -58,34 +58,70 @@
     .savings-overview{margin:2px 0 14px;padding:16px;border-radius:16px;background:linear-gradient(135deg,#17324d,#2b5876);color:#fff}.savings-overview small{display:block;color:rgba(255,255,255,.78);font-size:12px;font-weight:700}.savings-overview strong{display:block;font-size:30px;margin-top:5px}.savings-overview span{display:block;color:rgba(255,255,255,.76);font-size:12px;margin-top:4px}
     .priority-group{border:1px solid var(--line);border-radius:15px;margin-top:10px;background:#fff;overflow:hidden}.priority-group-head{padding:13px;cursor:pointer;user-select:none}.priority-group-head:active{background:#f7f9fb}.priority-group-top{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center}.priority-group-total{font-size:19px;font-weight:900;text-align:right}.priority-group-chevron{font-size:20px;font-weight:900;color:var(--brand);transition:transform .18s}.priority-group.open .priority-group-chevron{transform:rotate(90deg)}.priority-group-detail{display:none;border-top:1px solid var(--line);padding:10px 13px;background:#fcfdfe}.priority-group.open .priority-group-detail{display:block}.priority-business{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}.priority-business:first-child{border-top:0}.priority-business .task-amount{font-size:17px}.priority-business button{margin-top:6px;padding:8px 11px}
     @media(max-width:430px){.overview-grid{grid-template-columns:1fr}.overview-mini{display:grid;grid-template-columns:1fr auto;align-items:center}.overview-mini strong{margin-top:0}.priority-group-top{grid-template-columns:1fr auto auto}}
+
+    .legacy-home{display:none!important}
+    .dashboard-welcome{padding:4px 2px 14px}.dashboard-eyebrow{font-size:13px;color:var(--muted);font-weight:800;text-transform:capitalize}.dashboard-welcome h2{font-size:27px;margin:5px 0 7px}.dashboard-status{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:99px;font-size:13px;font-weight:850}.dashboard-status.good{background:#dff3e9;color:#176b46}.dashboard-status.warn{background:#fff0d2;color:#966100}.dashboard-status.bad{background:#f9dfe2;color:#a72f38}
+    .dashboard-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}.dashboard-metric{display:block;text-align:left;background:#fff;color:var(--ink);border:1px solid transparent;border-radius:17px;padding:14px;box-shadow:0 3px 14px rgba(20,35,50,.07);min-width:0}.dashboard-metric:active{transform:scale(.99)}.dashboard-metric small{display:block;color:var(--muted);font-size:12px}.dashboard-metric strong{display:block;font-size:22px;margin:6px 0 3px;overflow:hidden;text-overflow:ellipsis}.dashboard-metric span{display:block;color:var(--muted);font-size:11px;font-weight:650}.dashboard-metric.net{background:linear-gradient(135deg,#17324d,#2b5876);color:#fff}.dashboard-metric.net small,.dashboard-metric.net span{color:rgba(255,255,255,.74)}
+    .dashboard-actions-card{margin-bottom:12px}.dashboard-section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.dashboard-section-head small{color:var(--muted);font-weight:750}.dashboard-section-head h2{margin:2px 0 0;font-size:19px}.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.quick-actions button{padding:10px 5px;font-size:11px;min-width:0}.quick-actions button span{display:block;font-size:20px;margin-bottom:3px}.today-focus{margin-bottom:12px;border-left:5px solid var(--ok)}.today-focus.attention{border-left-color:var(--warn)}.today-focus.urgent{border-left-color:var(--bad)}.today-focus-title{font-size:19px;font-weight:900;margin-top:4px}.today-focus-amount{font-size:24px;font-weight:950;text-align:right;white-space:nowrap}.dashboard-full-btn{width:100%;margin-top:12px}.dashboard-plan{margin-top:12px;padding-top:2px;border-top:1px solid var(--line)}
+    .mini-btn{padding:8px 10px;font-size:11px}.dashboard-businesses{display:grid;gap:8px}.dashboard-business{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border-top:1px solid var(--line);padding:11px 0;cursor:pointer}.dashboard-business:first-child{border-top:0}.dashboard-business strong{font-size:16px}.dashboard-business .balance{text-align:right;font-weight:900}.dashboard-recent .recent-row{display:grid;grid-template-columns:1fr auto;gap:10px;padding:10px 0;border-top:1px solid var(--line);align-items:center}.dashboard-recent .recent-row:first-child{border-top:0}.recent-title{font-weight:800}.recent-meta{font-size:12px;color:var(--muted);margin-top:2px}.recent-amount{font-weight:900;text-align:right}.recent-amount.negative{color:var(--bad)}.recent-amount.positive{color:var(--ok)}
+    @media(max-width:430px){.dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-metric{padding:12px}.dashboard-metric strong{font-size:19px}.quick-actions{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.quick-actions button{padding:9px 3px;font-size:10px}.today-focus-title{font-size:17px}.today-focus-amount{font-size:20px}}
   </style>
 </head>
 <body>
 <header>
   <h1>Planificador de Pagos</h1>
   <p>Cada deuda y cada ahorro con porcentajes independientes</p>
-  <div class="version-badge">Versión 14 · Deuda total dinámica</div>
+  <div class="version-badge">Versión 15 · Dashboard ejecutivo</div>
   <button id="installBtn" class="install" hidden>Instalar app</button>
 </header>
 
 <main>
   <section id="inicio" class="active">
-
-    <div class="card assistant-card">
-      <div class="assistant-head"><div><div class="assistant-date" id="assistantDate"></div><h2 style="margin-top:4px">Qué hacer hoy</h2></div><div id="assistantPercent" class="pill paid">0%</div></div>
-      <div class="assistant-progress"><div class="bar"><span id="assistantBar" style="width:0%"></span></div></div>
-      <div id="assistantTasks" class="empty">Agrega deudas, metas y porcentajes para crear tu plan diario.</div>
+    <div class="dashboard-welcome">
+      <div class="dashboard-eyebrow" id="dashboardDate">Resumen de hoy</div>
+      <h2 id="dashboardGreeting">Así están tus finanzas.</h2>
+      <div id="dashboardStatus" class="dashboard-status good">Todo en orden.</div>
     </div>
-    <div class="card wide" style="margin-bottom:12px"><h2>Inteligencia financiera</h2><div id="financialInsights" class="empty">Aún no hay suficientes movimientos para detectar patrones.</div></div>
-    <div class="grid">
-      <div class="card wide hero-today"><small class="muted">Total que corresponde apartar hoy</small><div id="todayTotal" class="hero-amount">$0</div><div id="todayBreakdown" class="muted">Sin aportaciones programadas.</div></div>
-      <div class="card metric"><small>Deuda total</small><strong id="mDebt">$0</strong></div>
-      <div class="card metric"><small>Total apartado</small><strong id="mSaved">$0</strong></div>
-      <div class="card metric"><small>Falta por juntar</small><strong id="mMissing">$0</strong></div>
-      <div class="card metric"><small>Pagos activos</small><strong id="mActive">0</strong></div>
-      <div class="card wide next"><h2>Próximo pago</h2><div id="nextText" class="muted">Agrega una deuda para comenzar.</div></div>
-      <div class="card wide"><h2>Qué debe aportar cada negocio hoy</h2><div id="businessToday" class="empty">Configura negocios y porcentajes.</div></div>
-      <div class="card wide"><h2>Distribuciones activas</h2><div id="contribSummary" class="empty">Aún no hay distribuciones.</div></div>
+
+    <div class="dashboard-metrics">
+      <button class="dashboard-metric" onclick="switchTab('negocios')"><small>Disponible</small><strong id="dashAvailable">$0</strong><span>En tus negocios</span></button>
+      <button class="dashboard-metric" onclick="switchTab('ahorro')"><small>Ahorrado</small><strong id="dashSavings">$0</strong><span>En todas tus metas</span></button>
+      <button class="dashboard-metric" onclick="switchTab('deudas')"><small>Deuda pendiente</small><strong id="dashDebt">$0</strong><span>Lo que aún falta pagar</span></button>
+      <div class="dashboard-metric net"><small>Patrimonio neto</small><strong id="dashNet">$0</strong><span>Disponible + ahorro − deuda</span></div>
+    </div>
+
+    <div class="card dashboard-actions-card">
+      <div class="dashboard-section-head"><div><small>Acciones rápidas</small><h2>Registrar movimiento</h2></div></div>
+      <div class="quick-actions">
+        <button onclick="dashboardQuick('income')"><span>＋</span>Ingreso</button>
+        <button class="secondary" onclick="dashboardQuick('expense')"><span>−</span>Gasto</button>
+        <button class="secondary" onclick="dashboardQuick('debt')"><span>💳</span>Apartar</button>
+        <button class="secondary" onclick="dashboardQuick('goal')"><span>🏦</span>Ahorrar</button>
+      </div>
+    </div>
+
+    <div class="card today-focus">
+      <div class="row">
+        <div><small class="muted">Atención de hoy</small><div id="dashTodayMessage" class="today-focus-title">No tienes pagos urgentes.</div><div id="dashTodaySub" class="muted">Tu plan del día aparecerá aquí.</div></div>
+        <div id="dashTodayAmount" class="today-focus-amount">$0</div>
+      </div>
+      <button id="todayPlanButton" class="secondary dashboard-full-btn" onclick="toggleTodayPlan()">Ver plan del día</button>
+      <div id="dashboardTodayPlan" class="dashboard-plan" hidden></div>
+    </div>
+
+    <div class="card">
+      <div class="dashboard-section-head"><div><small>Disponible real</small><h2>Tus negocios</h2></div><button class="secondary mini-btn" onclick="switchTab('negocios')">Ver todos</button></div>
+      <div id="dashboardBusinesses" class="dashboard-businesses"></div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="dashboard-section-head"><div><small>Últimos registros</small><h2>Actividad reciente</h2></div></div>
+      <div id="dashboardRecent" class="dashboard-recent"></div>
+    </div>
+
+    <div class="legacy-home" aria-hidden="true">
+      <div id="assistantDate"></div><div id="assistantPercent"></div><div id="assistantBar"></div><div id="assistantTasks"></div><div id="financialInsights"></div>
+      <div id="todayTotal"></div><div id="todayBreakdown"></div><div id="mDebt"></div><div id="mSaved"></div><div id="mMissing"></div><div id="mActive"></div><div id="nextText"></div><div id="businessToday"></div><div id="contribSummary"></div>
     </div>
   </section>
 
@@ -349,7 +385,7 @@ function dailyTasks(){
 }
 function openSuggestedSaving(type,id,business,amount){addSaving(type,id);savingBusiness.value=business;updateSavingHint(false);savingAmount.value=Number(amount).toFixed(2)}
 function openSuggestedSavingEncoded(type,id,businessEncoded,amount){openSuggestedSaving(type,id,decodeURIComponent(businessEncoded),amount)}
-function toggleAssistantGroup(key){openAssistantGroups.has(key)?openAssistantGroups.delete(key):openAssistantGroups.add(key);renderDailyAssistant()}
+function toggleAssistantGroup(key){openAssistantGroups.has(key)?openAssistantGroups.delete(key):openAssistantGroups.add(key);renderDailyAssistant();renderDashboard()}
 function renderDailyAssistant(){
  const date=new Date(todayISO()+'T00:00:00');assistantDate.textContent=date.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
  const tasks=dailyTasks();
@@ -369,6 +405,34 @@ function renderDailyAssistant(){
    }).join('');
  }
  renderFinancialInsights();
+}
+function switchTab(tab){document.querySelectorAll('section,nav button').forEach(x=>x.classList.remove('active'));const sec=document.getElementById(tab),btn=document.querySelector(`nav button[data-tab="${tab}"]`);if(sec)sec.classList.add('active');if(btn)btn.classList.add('active');window.scrollTo({top:0,behavior:'smooth'})}
+function dashboardQuick(kind){
+ const wallets=data.businessWallets||[];
+ if(kind==='income'){if(wallets.length===1)openIncome(wallets[0].id);else switchTab('negocios');return}
+ if(kind==='expense'){if(wallets.length===1)openExpense(wallets[0].id);else switchTab('negocios');return}
+ const items=kind==='debt'?data.debts.filter(x=>remaining(x)>.009):data.goals.filter(x=>remaining(x)>.009);
+ if(items.length===1)addSaving(kind,items[0].id);else switchTab(kind==='debt'?'deudas':'ahorro')
+}
+function toggleTodayPlan(){const box=document.getElementById('dashboardTodayPlan'),btn=document.getElementById('todayPlanButton');if(!box)return;box.hidden=!box.hidden;btn.textContent=box.hidden?'Ver plan del día':'Ocultar plan del día';if(!box.hidden){box.innerHTML=assistantTasks.innerHTML||'<div class="empty">No hay pendientes para hoy.</div>'}}
+function renderDashboard(){
+ const available=(data.businessWallets||[]).reduce((s,b)=>s+walletBalance(b),0);
+ const savings=(data.goals||[]).reduce((s,g)=>s+Number(g.saved||0),0);
+ const debt=(data.debts||[]).reduce((s,d)=>s+remaining(d),0);
+ dashAvailable.textContent=money(available);dashSavings.textContent=money(savings);dashDebt.textContent=money(debt);dashNet.textContent=money(available+savings-debt);
+ const now=new Date();dashboardDate.textContent=now.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
+ const hour=now.getHours();dashboardGreeting.textContent=hour<12?'Buenos días. Así están tus finanzas.':hour<19?'Buenas tardes. Así están tus finanzas.':'Buenas noches. Así están tus finanzas.';
+ const overdue=[...data.debts,...data.goals].filter(x=>remaining(x)>.009&&x.due&&daysUntil(x.due)<0);
+ const tasks=dailyTasks(),todayAmount=tasks.reduce((s,t)=>s+Number(t.amount||0),0);
+ const status=document.getElementById('dashboardStatus'),focus=document.querySelector('.today-focus');focus.classList.remove('attention','urgent');
+ if(overdue.length){status.className='dashboard-status bad';status.textContent=`Atención: ${overdue.length} ${overdue.length===1?'pendiente vencido':'pendientes vencidos'}.`;dashTodayMessage.textContent='Hay pagos vencidos que revisar.';dashTodaySub.textContent='Entra al plan para ver el detalle.';dashTodayAmount.textContent=money(overdue.reduce((s,x)=>s+remaining(x),0));focus.classList.add('urgent')}
+ else if(tasks.length){status.className='dashboard-status warn';status.textContent=`Hoy tienes ${tasks.length} ${tasks.length===1?'aportación pendiente':'aportaciones pendientes'}.`;dashTodayMessage.textContent='Hoy conviene apartar';dashTodaySub.textContent=`${tasks.length} ${tasks.length===1?'movimiento pendiente':'movimientos pendientes'} en tu plan.`;dashTodayAmount.textContent=money(todayAmount);focus.classList.add('attention')}
+ else {status.className='dashboard-status good';status.textContent='Todo en orden por hoy.';dashTodayMessage.textContent='No tienes aportaciones pendientes hoy.';dashTodaySub.textContent='Puedes revisar deudas, ahorros o registrar movimientos.';dashTodayAmount.textContent='$0'}
+ const names=allBusinessNames();dashboardBusinesses.innerHTML=names.length?names.slice(0,4).map(name=>{const b=walletByName(name),bal=b?walletBalance(b):0;return `<div class="dashboard-business" onclick="switchTab('negocios')"><div><div class="recent-title">${esc(name)}</div><div class="recent-meta">Disponible real</div></div><div class="balance">${money(bal)}</div></div>`}).join(''):'<div class="empty">Aún no hay negocios registrados.</div>';
+ const moves=[];(data.businessWallets||[]).forEach(b=>{(b.incomes||[]).forEach(x=>moves.push({...x,_business:b.name,_type:'income'}));(b.expenses||[]).forEach(x=>moves.push({...x,_business:b.name,_type:'expense'}));(b.transfers||[]).forEach(x=>moves.push({...x,_business:b.name,_type:'transfer'}))});
+ moves.sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.createdAt||'').localeCompare(a.createdAt||''));
+ dashboardRecent.innerHTML=moves.length?moves.slice(0,5).map(x=>{const neg=x._type!=='income',title=x._type==='income'?(x.note||'Ingreso'):x._type==='expense'?(x.category||'Gasto')+(x.note?' · '+x.note:''):'Apartado para '+(x.itemName||'deuda/meta');return `<div class="recent-row"><div><div class="recent-title">${esc(title)}</div><div class="recent-meta">${esc(x._business)} · ${new Date((x.date||todayISO())+'T00:00:00').toLocaleDateString('es-MX')}</div></div><div class="recent-amount ${neg?'negative':'positive'}">${neg?'−':'+'}${money(x.amount)}</div></div>`}).join(''):'<div class="empty">Aún no hay movimientos registrados.</div>';
+ const plan=document.getElementById('dashboardTodayPlan');if(plan&&!plan.hidden)plan.innerHTML=assistantTasks.innerHTML||'<div class="empty">No hay pendientes para hoy.</div>';
 }
 function renderFinancialInsights(){
  const insights=[];
@@ -399,7 +463,7 @@ function render(){
    const pct=Math.min(100,Number(g.target)?Number(g.saved)/Number(g.target)*100:0),open=openGoalId===g.id,done=remaining(g)<=0,overdue=!!g.due&&daysUntil(g.due)<0&&!done;
    return `<div class="compact-item ${open?'open':''}"><div class="compact-head" onclick="toggleItem('goal','${g.id}')"><div class="compact-top"><div><div class="name">${esc(g.name)}</div><div class="muted">${g.due?'Fecha objetivo '+new Date(g.due+'T00:00:00').toLocaleDateString('es-MX')+' · '+g.freq+' · '+planInfo(g).count+' aportaciones':'Sin fecha objetivo'}</div></div><span class="pill ${done?'paid':overdue?'late':'pending'}">${done?'Cumplida':overdue?'Vencida':'En proceso'}</span><span class="compact-chevron">›</span></div><div class="compact-summary"><div><span class="muted">Ahorrado</span><div class="amount">${money(g.saved)} de ${money(g.target)}</div></div><div style="text-align:right"><span class="muted">Falta</span><div class="amount">${money(remaining(g))}</div></div></div><div class="bar"><span style="width:${pct}%"></span></div></div><div class="compact-detail">${scheduleHtml(g)}${allocHtml(g)}${contributionHtml('goal',g)}<div class="toolbar"><button class="secondary" onclick="event.stopPropagation();addSaving('goal','${g.id}')">+ Ahorrar</button><button onclick="event.stopPropagation();openAllocation('goal','${g.id}')">Porcentajes</button><button class="secondary" onclick="event.stopPropagation();openGoal('${g.id}')">Editar</button><button class="danger" onclick="event.stopPropagation();removeItem('goal','${g.id}')">Eliminar</button></div></div></div>`
  }).join(''):'<div class="empty">No hay metas. Pulsa “Agregar”.</div>';
- renderSummary();renderBusinesses();renderDailyAssistant();
+ renderSummary();renderBusinesses();renderDailyAssistant();renderDashboard();
 }
 function renderSummary(){
  const all=[...data.debts.map(x=>({...x,type:'Deuda'})),...data.goals.map(x=>({...x,type:'Ahorro'}))].filter(x=>(x.allocations||[]).length);
@@ -445,8 +509,8 @@ function exportData(){const blob=new Blob([JSON.stringify(data,null,2)],{type:'a
 importFile.addEventListener('change',async e=>{try{const obj=JSON.parse(await e.target.files[0].text());if(!obj.debts)throw Error();data=obj;migrate();save();alert('Respaldo importado.')}catch{alert('El archivo no es un respaldo válido.')}})
 function resetData(){if(confirm('Esto borrará todos los datos guardados en este dispositivo.')){data={debts:[],goals:[],businessWallets:[],settings:{catchUpMode:'next'}};save()}}
 catchUpMode.value=data.settings.catchUpMode;catchUpMode.addEventListener('change',()=>{data.settings.catchUpMode=catchUpMode.value;save()});
-document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('section,nav button').forEach(x=>x.classList.remove('active'));document.getElementById(b.dataset.tab).classList.add('active');b.classList.add('active')})
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js?v=13').then(r=>r.update()).catch(()=>{});
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab))
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js?v=15').then(r=>r.update()).catch(()=>{});
 let deferredPrompt;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;installBtn.hidden=false});installBtn.onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=null;installBtn.hidden=true}}
 save();
 </script>
